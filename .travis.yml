@@ -1,0 +1,7 @@
+language: cpp
+compiler: gcc
+
+
+script:
+- g++ main.cpp -o prog
+- ./prog
