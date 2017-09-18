@@ -3,5 +3,4 @@ compiler: g++
 
 
 script:
-- g++ main.cpp -o prog
-- ./prog
+- make && make run
