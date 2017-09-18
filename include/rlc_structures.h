@@ -1,6 +1,7 @@
 #ifndef RLC_STRUCTURES_H
 #define RLC_STRUCTURES_H
 
+#include <string>
 #include <vector>
 enum rlcMode {T, U5, U10, A};
 enum typeSdu {D, C};
