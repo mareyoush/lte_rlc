@@ -1,8 +1,30 @@
 #include <iostream>
 #include <stdlib.h>
 #include <fstream>
+#include <vector>
 #define OUTPUT 8
-using namespace std;
+
+enum rlcMode {T, U5, U10, A};
+enum typeSdu {D, C};
+
+struct RlcSduS
+{
+    rlcMode mode;
+    typeSdu type;
+    int pool;
+    int sizePdu;
+    int seqNum;
+    std::vector<int> sizeSduS;
+    std::vector<string> data;
+};
+
+struct RlcPduS
+{
+    rlcMode mode;
+    int sizePdu;
+    std::vector<string> data;
+};
+
 void decToBin(int hex){
     ofstream file;
     file.open("output.txt", ios::app);
