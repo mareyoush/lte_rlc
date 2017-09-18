@@ -1,6 +1,6 @@
 #include "composer.h"
 
-int loadSduFile(std::string filename)
+int loadSduFile(std::string filename, RlcSduS *rlcSdu_p)
 {
 
 
