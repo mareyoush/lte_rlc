@@ -9,6 +9,9 @@ all:
 clean:
 	rm -rfv $(OUT)
 
+run:
+	./${OUT} ${ARGS}
+
 
 
 
