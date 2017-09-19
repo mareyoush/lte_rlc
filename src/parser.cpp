@@ -216,6 +216,9 @@ int check_pdu_file(FILE *file, struct RlcPduS *pdu)
         }
     } 
     pdu->sizePdu = pduSize;
+    if (pdu->mode == T){
+        pdu->sizePdu = strlen(pdu->data.c_str()) / 2;
+    }
     free(buffer);
     free(firstLineBuff);
     return 0;
