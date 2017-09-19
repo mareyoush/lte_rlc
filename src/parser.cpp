@@ -4,9 +4,10 @@
 #include <string.h>
 #include <stdlib.h>
 
+
 // Checks file with PDU - returns 0 on success
 // Author - Adam Wroblak
-int check_pdu_file(FILE *file, struct RlcPduS *pdu)
+uint16_t check_pdu_file(FILE *file, struct RlcPduS *pdu)
 {
     unsigned int pduSize = 0;
     // Get the file size and read it into a memory buffer
@@ -210,8 +211,6 @@ int check_pdu_file(FILE *file, struct RlcPduS *pdu)
         pdu->sizePdu = strlen(data.c_str()) / 2;
     }
 
-    printf("data:\n%s\n", data.c_str());
-
     std::string pduString = "";
     
     while (!data.empty()){
@@ -221,10 +220,6 @@ int check_pdu_file(FILE *file, struct RlcPduS *pdu)
         }
         pdu->data.push_back(pduString);
         pduString = "";
-    }
-    printf("Split data:\n");
-    for (unsigned int i = 0; i < pdu->data.size(); i++){
-        printf("%s\n", pdu->data[i].c_str());
     }
 
     free(buffer);
@@ -241,5 +236,45 @@ int ishex(char c){
         || c == 'e' || c == 'E'
         || c == 'f' || c == 'F')
         return 1;
+    return 0;
+}
+
+uint16_t rlcParser(RlcPduS *rlcPdu_p, RlcSduS *rlcSdu_p){
+    utint16_t ret = 0;
+    switch (rlcPdu_p->mode){
+        case T:
+        {
+            ret = parseT(rlcPdu_p, rlcSdu_p);
+        }
+        case A:
+        {
+            ret = parseA(rlcPdu_p, rlcSdu_p);
+        }
+        case U5:
+        {
+            ret = parseU5(rlcPdu_p, rlcSdu_p);
+        }
+        case U10:
+        {
+            ret = parseU10(rlcPdu_p, rlcSdu_p);
+        }
+    } 
+    return ret;
+}
+
+uint16_t parseU5(RlcPduS *pdu, RlcSduS *sdu)
+{
+    return 0;
+}
+uint16_t parseU10(RlcPduS *pdu, RlcSduS *sdu)
+{
+    return 0;
+}
+uint16_t parseT(RlcPduS *pdu, RlcSduS *sdu)
+{
+    return 0;
+}
+uint16_t parseA(RlcPduS *pdu, RlcSduS *sdu)
+{
     return 0;
 }
