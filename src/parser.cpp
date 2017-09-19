@@ -5,6 +5,8 @@
 #include <stdlib.h>
 
 #define EFILE_EMPTY 1
+#define EBAD_FORMAT 2
+#define EBAD_PDU_SIZE 3
 
 int check_pdu_file(FILE *file, struct RlcPduS *pdu)
 {
@@ -32,6 +34,62 @@ int check_pdu_file(FILE *file, struct RlcPduS *pdu)
     char *firstLineBuff = (char*) malloc(firstLineLen * sizeof(char) + 1);
     memcpy(firstLineBuff, buffer, firstLineLen);
     firstLineBuff[firstLineLen] = '\0';
+
+    
+    c = &firstLineBuff[0];
+    while (isspace(*c)) // remove whitespaces
+        c++;
+    
+    if ( (*c) != 'A' && (*c) != 'U' && (*c) != 'T' ){
+        printf("Bad file format\n");
+        return EBAD_FORMAT;
+    }
+
+    if ((*c) == 'T'){
+        c++;
+        for (; (*c) != '\0'; c++){
+            if (!isspace(*c)){
+                printf("Bad file format\n");
+                return EBAD_FORMAT;
+            }
+        }
+        printf("Transparent mode\n");     
+    }
+
+    if ((*c) == 'A'){   // acknowledgment mode - only file size needed
+        c++;
+        if (!isspace(*c)){
+            printf("Bad file format\n");
+            return EBAD_FORMAT;
+        }
+        while (isspace(*c)) // remove whitespaces
+            c++;
+        char *currentPos = c;
+        for (; (*c) != '\0'; c++){
+            if (!isdigit(*c)){
+                printf("Bad file format\n");
+                return EBAD_FORMAT;
+            }
+        }
+        int pduSize = atoi(currentPos);
+        if (pduSize <= 0){
+            printf("Bad PDU size\n");
+            return EBAD_PDU_SIZE;
+        }
+        printf("Acknowledgment mode, size:%d\n", pduSize);     
+    }
+
+    if ( (*c) == 'U'){  // unacknowledgment mode 
+        c++;
+        if ( (*c) != '5' && (*c) != '1'){
+            printf("Bad file format\n");
+            return EBAD_FORMAT;
+        }
+
+        if ((*c) == '5'){   // U5 mode -- only file size needed
+
+        }
+    }
     
     return 0;
 }
