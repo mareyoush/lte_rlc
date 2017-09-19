@@ -4,14 +4,12 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define EFILE_EMPTY 1
-#define EBAD_FORMAT 2
-#define EBAD_PDU_SIZE 3
-
+// Checks file with PDU - returns 0 on success
+// Author - Adam Wroblak
 int check_pdu_file(FILE *file, struct RlcPduS *pdu)
 {
     pdu->data = "";
-    int pduSize = 0;
+    unsigned int pduSize = 0;
     // Get the file size and read it into a memory buffer
 	fseek(file, 0L, SEEK_END);  
 	size_t fsize = ftell(file); 
@@ -24,11 +22,12 @@ int check_pdu_file(FILE *file, struct RlcPduS *pdu)
 
     char *buffer = (char*) malloc(fsize * sizeof(char));
     fread(buffer, fsize, 1, file);
+    buffer[fsize - 1] = '\0';
 
     int firstLineLen = 0;  
     char *c = &buffer[0];
     // Get first line length
-    while ( (*c) != '\n' && (*c) != EOF){
+    while ( (*c) != '\n' && (*c) != '\0'){
         c++;
         firstLineLen++;
     }
@@ -38,11 +37,13 @@ int check_pdu_file(FILE *file, struct RlcPduS *pdu)
     firstLineBuff[firstLineLen] = '\0';
 
     c = &firstLineBuff[0];
-    while (isspace(*c)) // remove whitespaces
+    while (isspace(*c)) // skip whitespaces
         c++;
     
     if ( (*c) != 'A' && (*c) != 'U' && (*c) != 'T' ){
-        printf("Bad file format\n");
+        printf("Bad file format: first line must be mode [size]\n");
+        free(buffer);
+        free(firstLineBuff);
         return EBAD_FORMAT;
     }
 
@@ -51,7 +52,9 @@ int check_pdu_file(FILE *file, struct RlcPduS *pdu)
         c++;
         for (; (*c) != '\0'; c++){
             if (!isspace(*c)){
-                printf("Bad file format\n");
+                printf("Bad file format: no characters allowed after 'T' in first line\n");
+                free(buffer);
+                free(firstLineBuff);
                 return EBAD_FORMAT;
             }
         }
@@ -64,7 +67,9 @@ int check_pdu_file(FILE *file, struct RlcPduS *pdu)
     if ((*c) == 'A'){   // acknowledgment mode - only file size needed
         c++;
         if (!isspace(*c)){
-            printf("Bad file format\n");
+            printf("Bad file format: space required after 'A'\n");
+            free(buffer);
+            free(firstLineBuff);
             return EBAD_FORMAT;
         }
         while (isspace(*c)) // skip whitespaces
@@ -72,13 +77,17 @@ int check_pdu_file(FILE *file, struct RlcPduS *pdu)
         char *currentPos = c;
         for (; (*c) != '\0'; c++){
             if (!isdigit(*c)){
-                printf("Bad file format\n");
+                printf("Bad file format: obnly digits allowed after 'A'\n");
+                free(buffer);
+                free(firstLineBuff);
                 return EBAD_FORMAT;
             }
         }
         pduSize = atoi(currentPos);
         if (pduSize <= 0){
             printf("Bad PDU size\n");
+            free(buffer);
+            free(firstLineBuff);
             return EBAD_PDU_SIZE;
         }
         printf("Acknowledgment mode, size:%d\n", pduSize);
@@ -90,7 +99,9 @@ int check_pdu_file(FILE *file, struct RlcPduS *pdu)
     if ( (*c) == 'U'){  // unacknowledgment mode 
         c++;
         if ( (*c) != '5' && (*c) != '1'){
-            printf("Bad file format\n");
+            printf("Bad file format: only '5' or '1' after 'U' allowed\n");
+            free(buffer);
+            free(firstLineBuff);
             return EBAD_FORMAT;
         }
 
@@ -98,7 +109,9 @@ int check_pdu_file(FILE *file, struct RlcPduS *pdu)
         if ((*c) == '5'){   
             c++;
             if (!isspace(*c)){
-                printf("Bad file format\n");
+                printf("Bad file format: space required after 'U5'\n");
+                free(buffer);
+                free(firstLineBuff);
                 return EBAD_FORMAT;
             }
             while (isspace(*c)) // skip whitespaces
@@ -107,13 +120,17 @@ int check_pdu_file(FILE *file, struct RlcPduS *pdu)
             char *currentPos = c;
             for (; (*c) != '\0'; c++){
                 if (!isdigit(*c)){
-                    printf("Bad file format\n");
+                    printf("Bad file format: only digits allowed after 'U5'l\n");
+                    free(buffer);
+                    free(firstLineBuff);
                     return EBAD_FORMAT;
                 }
             }
             pduSize = atoi(currentPos);
             if (pduSize <= 0){
                 printf("Bad PDU size\n");
+                free(buffer);
+                free(firstLineBuff);
                 return EBAD_PDU_SIZE;
             }
             printf("U5 mode, size:%d\n", pduSize);
@@ -125,12 +142,16 @@ int check_pdu_file(FILE *file, struct RlcPduS *pdu)
         if ( (*c) == '1'){  
             c++;
             if((*c) != '0'){
-                printf("Bad file format\n");
+                printf("Bad file format: only '0' allowed after 'U1'\n");
+                free(buffer);
+                free(firstLineBuff);
                 return EBAD_FORMAT;
             }
             c++;
             if (!isspace(*c)){
-                printf("Bad file format\n");
+                printf("Bad file format: space required after 'U10'\n");
+                free(buffer);
+                free(firstLineBuff);
                 return EBAD_FORMAT;
             }
             while (isspace(*c)) // skip whitespaces
@@ -138,13 +159,17 @@ int check_pdu_file(FILE *file, struct RlcPduS *pdu)
             char *currentPos = c;
             for (; (*c) != '\0'; c++){
                 if (!isdigit(*c)){
-                    printf("Bad file format\n");
+                    printf("Bad file format: only digits allowed after 'U10'\n");
+                    free(buffer);
+                    free(firstLineBuff);
                     return EBAD_FORMAT;
                 }
             }
             pduSize = atoi(currentPos);
             if (pduSize <= 0){
                 printf("Bad PDU size\n");
+                free(buffer);
+                free(firstLineBuff);
                 return EBAD_PDU_SIZE;
             }
             printf("U10 mode, size:%d\n", pduSize);
@@ -153,8 +178,7 @@ int check_pdu_file(FILE *file, struct RlcPduS *pdu)
         // ---------------------U10--------------------
     }
     // ------------------ UMD PDU ----------------------
-    
-    
+     
     // Start reading data from second line
     c = buffer + firstLineLen + 1;
     while ( (*c) != '\0'){
@@ -165,12 +189,35 @@ int check_pdu_file(FILE *file, struct RlcPduS *pdu)
             ;
         else{
             printf("Invalid character in data:%c\n", *c);
+            free(buffer);
+            free(firstLineBuff);
             return EBAD_FORMAT;
         }
         c++;
     }
-    printf("Data: %s\n", pdu->data.c_str());
-    printf("%lu bytes\n", strlen(pdu->data.c_str()) / 2);
+
+    // Check if data size is given in bytes
+    // (no half bytes!)
+    if (  (strlen(pdu->data.c_str()) % 2) != 0 ){
+        printf("Bad data length: only even number of hex digits allowed\n");
+        free(buffer);
+        free(firstLineBuff);
+        return EBAD_DATA_LENGTH;
+    } 
+
+    // Check if size given in first line matches with actual data size
+    // divided by 2 because one byte of data is two characters
+    if (pdu->mode == A || pdu->mode == U5 || pdu->mode == U10){
+        if ( (strlen(pdu->data.c_str()) / 2) != pduSize ){
+            printf("Data size given in first line doesn't match with actual data size\n");
+            free(buffer);
+            free(firstLineBuff);
+            return EBAD_DATA_LENGTH;
+        }
+    } 
+    pdu->sizePdu = pduSize;
+    free(buffer);
+    free(firstLineBuff);
     return 0;
 }
 
