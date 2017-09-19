@@ -10,6 +10,8 @@
 
 int check_pdu_file(FILE *file, struct RlcPduS *pdu)
 {
+    pdu->data = "";
+    int pduSize = 0;
     // Get the file size and read it into a memory buffer
 	fseek(file, 0L, SEEK_END);  
 	size_t fsize = ftell(file); 
@@ -74,7 +76,7 @@ int check_pdu_file(FILE *file, struct RlcPduS *pdu)
                 return EBAD_FORMAT;
             }
         }
-        int pduSize = atoi(currentPos);
+        pduSize = atoi(currentPos);
         if (pduSize <= 0){
             printf("Bad PDU size\n");
             return EBAD_PDU_SIZE;
@@ -109,7 +111,7 @@ int check_pdu_file(FILE *file, struct RlcPduS *pdu)
                     return EBAD_FORMAT;
                 }
             }
-            int pduSize = atoi(currentPos);
+            pduSize = atoi(currentPos);
             if (pduSize <= 0){
                 printf("Bad PDU size\n");
                 return EBAD_PDU_SIZE;
@@ -140,7 +142,7 @@ int check_pdu_file(FILE *file, struct RlcPduS *pdu)
                     return EBAD_FORMAT;
                 }
             }
-            int pduSize = atoi(currentPos);
+            pduSize = atoi(currentPos);
             if (pduSize <= 0){
                 printf("Bad PDU size\n");
                 return EBAD_PDU_SIZE;
@@ -152,15 +154,23 @@ int check_pdu_file(FILE *file, struct RlcPduS *pdu)
     }
     // ------------------ UMD PDU ----------------------
     
+    
     // Start reading data from second line
     c = buffer + firstLineLen + 1;
     while ( (*c) != '\0'){
-        if ( ishex(*c)){
-            printf("%c is hex\n",*c);
+        if (ishex(*c)){
+            pdu->data += *c;
+        }
+        else if (isspace(*c))
+            ;
+        else{
+            printf("Invalid character in data:%c\n", *c);
+            return EBAD_FORMAT;
         }
         c++;
     }
-    
+    printf("Data: %s\n", pdu->data.c_str());
+    printf("%lu bytes\n", strlen(pdu->data.c_str()) / 2);
     return 0;
 }
 
