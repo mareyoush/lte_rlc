@@ -5,6 +5,10 @@
 int main(int argc, char **argv)
 {
     uint16_t ret;
+    if (argc == 1){
+        printf("No args.\n");
+        return 0;
+    }
     FILE *file = fopen(argv[1], "r");
     if (file == NULL){
         perror("fopen");
