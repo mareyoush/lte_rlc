@@ -33,6 +33,5 @@ int check_pdu_file(FILE *file, struct RlcPduS *pdu)
     memcpy(firstLineBuff, buffer, firstLineLen);
     firstLineBuff[firstLineLen] = '\0';
     
-    
     return 0;
 }
