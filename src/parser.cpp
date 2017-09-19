@@ -240,7 +240,7 @@ int ishex(char c){
 }
 
 uint16_t rlcParser(RlcPduS *rlcPdu_p, RlcSduS *rlcSdu_p){
-    utint16_t ret = 0;
+    uint16_t ret = 0;
     switch (rlcPdu_p->mode){
         case T:
         {
