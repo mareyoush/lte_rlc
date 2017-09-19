@@ -25,17 +25,16 @@ int check_pdu_file(FILE *file, struct RlcPduS *pdu)
 
     int firstLineLen = 0;  
     char *c = &buffer[0];
+    // Get first line length
     while ( (*c) != '\n' && (*c) != EOF){
         c++;
         firstLineLen++;
     }
-    
-    
+       
     char *firstLineBuff = (char*) malloc(firstLineLen * sizeof(char) + 1);
     memcpy(firstLineBuff, buffer, firstLineLen);
     firstLineBuff[firstLineLen] = '\0';
 
-    
     c = &firstLineBuff[0];
     while (isspace(*c)) // remove whitespaces
         c++;
@@ -45,6 +44,7 @@ int check_pdu_file(FILE *file, struct RlcPduS *pdu)
         return EBAD_FORMAT;
     }
 
+    // ------------------- Transparent mode --------------------------
     if ((*c) == 'T'){
         c++;
         for (; (*c) != '\0'; c++){
@@ -53,16 +53,19 @@ int check_pdu_file(FILE *file, struct RlcPduS *pdu)
                 return EBAD_FORMAT;
             }
         }
-        printf("Transparent mode\n");     
+        printf("Transparent mode\n");
+        pdu->mode = T;  
     }
+    // ----------------------Transparent mode-------------------------
 
+    // -----------------AMD PDU --------------------------------------
     if ((*c) == 'A'){   // acknowledgment mode - only file size needed
         c++;
         if (!isspace(*c)){
             printf("Bad file format\n");
             return EBAD_FORMAT;
         }
-        while (isspace(*c)) // remove whitespaces
+        while (isspace(*c)) // skip whitespaces
             c++;
         char *currentPos = c;
         for (; (*c) != '\0'; c++){
@@ -76,9 +79,12 @@ int check_pdu_file(FILE *file, struct RlcPduS *pdu)
             printf("Bad PDU size\n");
             return EBAD_PDU_SIZE;
         }
-        printf("Acknowledgment mode, size:%d\n", pduSize);     
+        printf("Acknowledgment mode, size:%d\n", pduSize);
+        pdu->mode = A;  
     }
+    // -------------------------------AMD PDU-----------------------------
 
+    // ------------- UMD PDU ----------------------------------
     if ( (*c) == 'U'){  // unacknowledgment mode 
         c++;
         if ( (*c) != '5' && (*c) != '1'){
@@ -86,10 +92,86 @@ int check_pdu_file(FILE *file, struct RlcPduS *pdu)
             return EBAD_FORMAT;
         }
 
-        if ((*c) == '5'){   // U5 mode -- only file size needed
+        // ------ U5 mode -- only file size needed ------
+        if ((*c) == '5'){   
+            c++;
+            if (!isspace(*c)){
+                printf("Bad file format\n");
+                return EBAD_FORMAT;
+            }
+            while (isspace(*c)) // skip whitespaces
+                c++;
 
+            char *currentPos = c;
+            for (; (*c) != '\0'; c++){
+                if (!isdigit(*c)){
+                    printf("Bad file format\n");
+                    return EBAD_FORMAT;
+                }
+            }
+            int pduSize = atoi(currentPos);
+            if (pduSize <= 0){
+                printf("Bad PDU size\n");
+                return EBAD_PDU_SIZE;
+            }
+            printf("U5 mode, size:%d\n", pduSize);
+            pdu->mode = U5;
         }
+        // ---------------------U5------------------------
+
+        // ----- U10 mode -- only file size needed --------
+        if ( (*c) == '1'){  
+            c++;
+            if((*c) != '0'){
+                printf("Bad file format\n");
+                return EBAD_FORMAT;
+            }
+            c++;
+            if (!isspace(*c)){
+                printf("Bad file format\n");
+                return EBAD_FORMAT;
+            }
+            while (isspace(*c)) // skip whitespaces
+                c++;
+            char *currentPos = c;
+            for (; (*c) != '\0'; c++){
+                if (!isdigit(*c)){
+                    printf("Bad file format\n");
+                    return EBAD_FORMAT;
+                }
+            }
+            int pduSize = atoi(currentPos);
+            if (pduSize <= 0){
+                printf("Bad PDU size\n");
+                return EBAD_PDU_SIZE;
+            }
+            printf("U10 mode, size:%d\n", pduSize);
+            pdu->mode = U10;  
+        } 
+        // ---------------------U10--------------------
+    }
+    // ------------------ UMD PDU ----------------------
+    
+    // Start reading data from second line
+    c = buffer + firstLineLen + 1;
+    while ( (*c) != '\0'){
+        if ( ishex(*c)){
+            printf("%c is hex\n",*c);
+        }
+        c++;
     }
     
+    return 0;
+}
+
+int ishex(char c){
+    if( isdigit(c)
+        || c == 'a' || c == 'A' 
+        || c == 'b' || c == 'B'
+        || c == 'c' || c == 'C'
+        || c == 'd' || c == 'D'
+        || c == 'e' || c == 'E'
+        || c == 'f' || c == 'F')
+        return 1;
     return 0;
 }
