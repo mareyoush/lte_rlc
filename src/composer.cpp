@@ -3,9 +3,8 @@
 #include <iostream>
 #include <regex>
 
-int loadSduFile(const std::string filename)//, RlcSduS *rlcSdu_p)
+int loadSduFile(std::string filename, RlcSduS *rlcSdu_p)
 {
-    char character;
     std::ifstream file(filename.c_str());
     /*while(file.get(character)){ 
         if (character == ' ')
@@ -16,16 +15,22 @@ int loadSduFile(const std::string filename)//, RlcSduS *rlcSdu_p)
     getline(file, line);
     //std::cout << line;
 
-    std::regex pattern("^T");
-
-    if(std::regex_search(line, pattern))
+    if(std::regex_match(line, std::regex("^T")))
     {
-        file.get(character);
-        std::cout << character << std::endl;
+        
     } 
+    else if(std::regex_match(line, std::regex("^A")))
+    {
 
-    file.get(character);
-    std::cout << character;
+    }
+    else if(std::regex_match(line, std::regex("^U5")))
+    {
+
+    }
+    else if(std::regex_match(line, std::regex("^U10")))
+    {
+        
+    }
 
     file.close();
 

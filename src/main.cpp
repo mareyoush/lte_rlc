@@ -7,7 +7,8 @@
 
 int main()
 {
-    loadSduFile("example1.txt");
+    RlcSduS *rlcSdu_p = new RlcSduS();
+    loadSduFile("example1.txt", rlcSdu_p);
     return 0;
 }
 
