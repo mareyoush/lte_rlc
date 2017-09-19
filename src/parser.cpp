@@ -8,7 +8,6 @@
 // Author - Adam Wroblak
 int check_pdu_file(FILE *file, struct RlcPduS *pdu)
 {
-    pdu->data = "";
     unsigned int pduSize = 0;
     // Get the file size and read it into a memory buffer
 	fseek(file, 0L, SEEK_END);  
@@ -20,14 +19,14 @@ int check_pdu_file(FILE *file, struct RlcPduS *pdu)
         return EFILE_EMPTY;
     }
 
-    char *buffer = (char*) malloc(fsize * sizeof(char));
+    char *buffer = (char*) malloc(fsize * sizeof(char) + 1);
     fread(buffer, fsize, 1, file);
-    buffer[fsize - 1] = '\0';
+    buffer[fsize] = '\0';
 
     int firstLineLen = 0;  
     char *c = &buffer[0];
     // Get first line length
-    while ( (*c) != '\n' && (*c) != '\0'){
+    while ( (*c) != '\n' && (*c) != EOF){
         c++;
         firstLineLen++;
     }
@@ -77,7 +76,7 @@ int check_pdu_file(FILE *file, struct RlcPduS *pdu)
         char *currentPos = c;
         for (; (*c) != '\0'; c++){
             if (!isdigit(*c)){
-                printf("Bad file format: obnly digits allowed after 'A'\n");
+                printf("Bad file format: only digits allowed after 'A'\n");
                 free(buffer);
                 free(firstLineBuff);
                 return EBAD_FORMAT;
@@ -181,9 +180,10 @@ int check_pdu_file(FILE *file, struct RlcPduS *pdu)
      
     // Start reading data from second line
     c = buffer + firstLineLen + 1;
+    std::string data = "";
     while ( (*c) != '\0'){
         if (ishex(*c)){
-            pdu->data += *c;
+            data += *c;
         }
         else if (isspace(*c))
             ;
@@ -195,30 +195,38 @@ int check_pdu_file(FILE *file, struct RlcPduS *pdu)
         }
         c++;
     }
-
     // Check if data size is given in bytes
     // (no half bytes!)
-    if (  (strlen(pdu->data.c_str()) % 2) != 0 ){
+    if (  (strlen(data.c_str()) % 2) != 0 ){
         printf("Bad data length: only even number of hex digits allowed\n");
         free(buffer);
         free(firstLineBuff);
         return EBAD_DATA_LENGTH;
     } 
 
-    // Check if size given in first line matches with actual data size
-    // divided by 2 because one byte of data is two characters
-    if (pdu->mode == A || pdu->mode == U5 || pdu->mode == U10){
-        if ( (strlen(pdu->data.c_str()) / 2) != pduSize ){
-            printf("Data size given in first line doesn't match with actual data size\n");
-            free(buffer);
-            free(firstLineBuff);
-            return EBAD_DATA_LENGTH;
-        }
-    } 
     pdu->sizePdu = pduSize;
+    // in transparent mode size is not specified
     if (pdu->mode == T){
-        pdu->sizePdu = strlen(pdu->data.c_str()) / 2;
+        pdu->sizePdu = strlen(data.c_str()) / 2;
     }
+
+    printf("data:\n%s\n", data.c_str());
+
+    std::string pduString = "";
+    
+    while (!data.empty()){
+        for (int i = 0; i < pdu->sizePdu * 2 && !data.empty(); i++){
+            pduString += data[0];
+            data.erase(0,1);
+        }
+        pdu->data.push_back(pduString);
+        pduString = "";
+    }
+    printf("Split data:\n");
+    for (unsigned int i = 0; i < pdu->data.size(); i++){
+        printf("%s\n", pdu->data[i].c_str());
+    }
+
     free(buffer);
     free(firstLineBuff);
     return 0;

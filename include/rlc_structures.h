@@ -21,6 +21,6 @@ struct RlcPduS
 {
     rlcMode mode;
     int sizePdu;
-    std::string data;
+    std::vector<std::string> data;
 };
 #endif
