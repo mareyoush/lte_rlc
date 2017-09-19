@@ -12,7 +12,6 @@ struct RlcSduS
     typeSdu type = Y;
     int pool = 0;
     int sizePdu = 0;
-    int seqNum = 0;
     std::vector<int> sizeSduS;
     std::vector<std::string> data;
 };

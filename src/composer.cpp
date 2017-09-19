@@ -15,19 +15,25 @@ int loadSduFile(std::string filename, RlcSduS *rlcSdu_p)
     getline(file, line);
     //std::cout << line;
 
-    if(std::regex_match(line, std::regex("^T")))
+    if(std::regex_search(line, std::regex("^T")))
     {
-        
+        int i = 0;
+        rlcSdu_p->mode = T;
+        while(getline(file, line))
+        {
+            rlcSdu_p->data.push_back(line);
+            std::cout << rlcSdu_p->data[i++];
+        }
     } 
-    else if(std::regex_match(line, std::regex("^A")))
+    else if(std::regex_search(line, std::regex("^A")))
     {
 
     }
-    else if(std::regex_match(line, std::regex("^U5")))
+    else if(std::regex_search(line, std::regex("^U5")))
     {
 
     }
-    else if(std::regex_match(line, std::regex("^U10")))
+    else if(std::regex_search(line, std::regex("^U10")))
     {
         
     }
