@@ -55,7 +55,6 @@ int loadSduFile(std::string filename, RlcSduS *rlcSdu_p)
         while(getline(file, line))
         {
             rlcSdu_p->data.push_back(line);
-            //std::cout << rlcSdu_p->data[i++];
         }
         
     } 
@@ -113,47 +112,71 @@ int loadSduFile(std::string filename, RlcSduS *rlcSdu_p)
     std::cout << std::endl;
     return 0;
 }
+//Autor: Adam Ziołecki
+uint16_t rlcComposer(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
+{
+    
 
-int rlcComposer(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
+
+    if (rlcSdu_p->mode == U5 || rlcSdu_p->mode == U10)
+    {
+        composerUM(rlcSdu_p, rlcPdu_p);
+    }
+    
+    return 0;
+}
+
+uint16_t composerTM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
+{
+
+    return 0;
+}
+
+uint16_t composerUM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
 {
     std::string dataPdu = "";
-    unsigned int SN = 0;
-
     std::string FI = "";
     std::string E = "";
     std::vector<std::string> LI;
+    
+    unsigned int SN = 0;
 
-
-    if (rlcSdu_p->mode == U5)
+    int i = 0;
+    int headerSize = 8;
+    int extHeaderSize = 12;
+    int tempPduSize = rlcSdu_p->sizePdu;
+    int sizeSdu = std::stoi(rlcSdu_p->data[i].substr(0, rlcSdu_p->data[i].find(' ')));
+    
+    for (unsigned int i = 0; i < rlcSdu_p->data.size(); i++)
     {
-        int i = 0;
-        int headerSize = 8;
-        int extHeaderSize = 12;
-        int tempPduSize = rlcSdu_p->sizePdu;
-        int sizeSdu = std::stoi(rlcSdu_p->data[i].substr(0, rlcSdu_p->data[i].find(' ')));
-        for (unsigned int i = 0; i < rlcSdu_p->data.size(); i++)
+        if(rlcSdu_p->sizePdu == sizeSdu)
         {
-            if(rlcSdu_p->sizePdu == sizeSdu)
+            dataPdu += "000";   // FI = 00; E = 0
+            dataPdu += decToBin(SN, 5);
+            SN++;
+        }
+        else if(rlcSdu_p->sizePdu > sizeSdu)
+        {
+            do
             {
-                dataPdu += "000";   // FI = 00; E = 0
-                dataPdu += decToBin(SN, 5);
-                SN++;
-            }
-            else if(rlcSdu_p->sizePdu > sizeSdu)
-            {
-                do
-                {
-                    tempPduSize -= sizeSdu;
-                    tempPduSize -= headerSize;
-                    LI.push_back(decToBin(sizeSdu, 11));
-                    tempPduSize -= extHeaderSize;
-                } while (tempPduSize > sizeSdu);
-            }
+                tempPduSize -= sizeSdu;
+                tempPduSize -= headerSize;
+                LI.push_back(decToBin(sizeSdu, 11));
+                tempPduSize -= extHeaderSize;
+            } while (tempPduSize > sizeSdu);
         }
     }
-    //std::string test = std::vector[1];
+
+    /*std::string test = std::vector[1];
     std::string sizePdu = rlcSdu_p->data[1].substr(0, rlcSdu_p->data[1].find(' '));
     std::cout << "Original " << rlcSdu_p->data[1] << "\nNew " << sizePdu << "\n";
-    std::cout << decToBin(5, 5) << "\n";
+    std::cout << decToBin(5, 5) << "\n";*/
+
+    return 0;
+}
+
+uint16_t composerAM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
+{
+
     return 0;
 }
