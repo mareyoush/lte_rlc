@@ -316,7 +316,7 @@ uint16_t parseA(RlcPduS *pdu, RlcSduS *sdu)
         const char *data = pdu->data[i].c_str();
         printf("data %d:\n%s\n", i, data);
         char stringHeader[5];
-        char *data_p = NULL; // beginning of data part will be stored here, if PDU will be data PDU
+        //char *data_p = NULL; // beginning of data part will be stored here, if PDU will be data PDU
         // copy header to sepparate variable
         memcpy(stringHeader, data, 4);
         stringHeader[4] = '\0';
@@ -351,8 +351,8 @@ uint16_t parseA(RlcPduS *pdu, RlcSduS *sdu)
 
             // ---------------- exntension flag not set ------------
             else{
-                char *c = &data[4]; // this is where header ends
-                printf("data part: %s\n", c);
+                //char *c = &data[4]; // this is where header ends
+                //printf("data part: %s\n", c);
             }
             // ---------------- exntension flag not set ------------
         }
