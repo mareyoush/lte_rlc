@@ -5,6 +5,7 @@
 #include <string>
 
 #define BASE_16 16
+#define BASE_2 2
 #define EFILE_EMPTY 1
 #define EBAD_FORMAT 2
 #define EBAD_PDU_SIZE 3

@@ -24,12 +24,12 @@ std::string hexToBin(std::string hex)
 	    case '7': output.append("0111"); break;
 	    case '8': output.append("1000"); break;
 	    case '9': output.append("1001"); break;
-	    case 'a': output.append("1010"); break;
-	    case 'b': output.append("1011"); break;
-	    case 'c': output.append("1100"); break;
-	    case 'd': output.append("1101"); break;
-	    case 'e': output.append("1110"); break;
-	    case 'f': output.append("1111"); break;
+	    case 'a': case 'A': output.append("1010"); break;
+	    case 'b': case 'B': output.append("1011"); break;
+	    case 'c': case 'C': output.append("1100"); break;
+	    case 'd': case 'D': output.append("1101"); break;
+	    case 'e': case 'E': output.append("1110"); break;
+	    case 'f': case 'F': output.append("1111"); break;
        }
     }
     return output;
@@ -254,7 +254,7 @@ uint16_t check_pdu_file(FILE *file, struct RlcPduS *pdu)
         pduString = "";
     }
     // conversion test	
-    printf("bin: %s", hexToBin(pdu->data[0]).c_str());
+    printf("bin: %s\n", hexToBin(pdu->data[0]).c_str());
     
     free(buffer);
     free(firstLineBuff);
@@ -314,7 +314,7 @@ uint16_t parseA(RlcPduS *pdu, RlcSduS *sdu)
     for (unsigned int i = 0; i < pdu->data.size(); i++){
         // extract one data pdu from structure
         const char *data = pdu->data[i].c_str();
-        printf("data %d:\n%s\n", i, data);
+        printf("\nPDU %d:\n", i);
         char stringHeader[5];
         //char *data_p = NULL; // beginning of data part will be stored here, if PDU will be data PDU
         // copy header to sepparate variable
@@ -345,20 +345,37 @@ uint16_t parseA(RlcPduS *pdu, RlcSduS *sdu)
             
             // ---------------- extension flag set-------------------
             if (e){
-                
+                std::string extensionPart(&data[4]);
+                printf("e flag set, read from:\n%s\n", extensionPart.c_str());
+                std::string binExtensionPart = hexToBin(extensionPart);
+                printf("In binary:\n%s\n", binExtensionPart.c_str());
+                // eFlag tells if extension part ends or not
+                // 0 - ends, 1 - doesn't end 
+                std::string eFlag = "1"; // for first iteration of loop
+
+                while (eFlag == "1"){   // while there is next length indicator to get
+                    
+                    eFlag = binExtensionPart.substr(0, 1);
+                    binExtensionPart.erase(0,1);
+
+                    std::string lengthIndicator = binExtensionPart.substr(0, 11);
+                    binExtensionPart.erase(0,11);
+                    long int li = strtoul(lengthIndicator.c_str(), NULL, BASE_2);
+                    printf("e=%s li=%s (%ld)\n", eFlag.c_str(), lengthIndicator.c_str(), li);
+                }
             }
             // ---------------- extension flag set -----------------
 
             // ---------------- exntension flag not set ------------
             else{
-                //char *c = &data[4]; // this is where header ends
-                //printf("data part: %s\n", c);
+                const char *c = &data[4]; // this is where header ends
+                printf("data part(one SDU): %s\n", c);
             }
             // ---------------- exntension flag not set ------------
         }
         // ------------- RLC data PDU -----------------------------
 
-
     }
+    
     return 0;
 }
