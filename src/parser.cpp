@@ -312,20 +312,53 @@ uint16_t parseT(RlcPduS *pdu, RlcSduS *sdu)
 uint16_t parseA(RlcPduS *pdu, RlcSduS *sdu)
 {
     for (unsigned int i = 0; i < pdu->data.size(); i++){
+        // extract one data pdu from structure
         const char *data = pdu->data[i].c_str();
         printf("data %d:\n%s\n", i, data);
         char stringHeader[5];
+        char *data_p = NULL; // beginning of data part will be stored here, if PDU will be data PDU
+        // copy header to sepparate variable
         memcpy(stringHeader, data, 4);
         stringHeader[4] = '\0';
         printf("header: %s ", stringHeader);
         long int intHeader = strtol(stringHeader, NULL, BASE_16);
+
+        // check header insides
         int dc = ((intHeader & BIT16) != 0);
-        int rf = ((intHeader & BIT15) != 0);
-        int p  = ((intHeader & BIT14) != 0);
-        int fi = ((intHeader & (BIT13 | BIT12)) >> 11);
-        int e  = ((intHeader & BIT11) != 0);
-        int sn = (intHeader & FIRST_10_BITS);
-        printf("dc=%d, rf=%d, p=%d, fi=%d, e=%d, sn=%d\n", dc, rf, p, fi, e, sn);
+
+        // --------------- RLC control PDU ------------------------
+        if (dc == 0){
+            printf("Control PDU\n");
+
+        }
+        // --------------- RLC control PDU ------------------------
+        
+        // --------------- RLC data PDU ---------------------------
+        else{
+            printf("Data PDU\n");
+            int rf = ((intHeader & BIT15) != 0);
+            int p  = ((intHeader & BIT14) != 0);
+            int fi = ((intHeader & (BIT13 | BIT12)) >> 11);
+            int e  = ((intHeader & BIT11) != 0);
+            int sn = (intHeader & FIRST_10_BITS);
+            printf("dc=%d, rf=%d, p=%d, fi=%d, e=%d, sn=%d\n", dc, rf, p, fi, e, sn);
+            
+            // ---------------- extension flag set-------------------
+            if (e){
+                
+            }
+            // ---------------- extension flag set -----------------
+
+            // ---------------- exntension flag not set ------------
+            else{
+                char *c = &data[4]; // this is where header ends
+                printf("data part: %s\n", c);
+            }
+            // ---------------- exntension flag not set ------------
+        }
+        // ------------- RLC data PDU -----------------------------
+
+
     }
     return 0;
 }

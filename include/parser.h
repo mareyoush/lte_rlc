@@ -10,7 +10,6 @@
 #define EBAD_PDU_SIZE 3
 #define EBAD_DATA_LENGTH 4
 
-<<<<<<< HEAD
 #define BIT1  0x0001
 #define BIT2  0x0002
 #define BIT3  0x0004
@@ -29,9 +28,7 @@
 #define BIT16 0x8000
 #define FIRST_10_BITS 0x03ff
 
-=======
 std::string hexToBin(std::string hex);
->>>>>>> ec86212ea872e35525bed03f91e4b30642ee234f
 uint16_t check_pdu_file(FILE *file, struct RlcPduS *pdu);
 uint16_t rlcParser(RlcPduS *rlcPdu_p, RlcSduS *rlcSdu_p);
 uint16_t parseU5(RlcPduS *pdu, RlcSduS *sdu);
