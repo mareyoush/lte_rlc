@@ -3,6 +3,38 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <string>
+#include <iostream>
+#include <cstdio>
+
+std::string hexToBin(std::string hex)
+{
+    std::string output = "";
+    for(int i = 0; (unsigned)i < hex.length(); ++i)
+    {
+        switch(hex[i])
+	{
+   	    case '0': output.append("0000"); break;
+	    case '1': output.append("0001"); break;
+	    case '2': output.append("0010"); break;
+	    case '3': output.append("0011"); break;
+	    case '4': output.append("0100"); break;
+	    case '5': output.append("0101"); break;
+	    case '6': output.append("0110"); break;
+	    case '7': output.append("0111"); break;
+	    case '8': output.append("1000"); break;
+	    case '9': output.append("1001"); break;
+	    case 'a': output.append("1010"); break;
+	    case 'b': output.append("1011"); break;
+	    case 'c': output.append("1100"); break;
+	    case 'd': output.append("1101"); break;
+	    case 'e': output.append("1110"); break;
+	    case 'f': output.append("1111"); break;
+       }
+    }
+    return output;
+}
+
 
 
 // Checks file with PDU - returns 0 on success
@@ -221,7 +253,9 @@ uint16_t check_pdu_file(FILE *file, struct RlcPduS *pdu)
         pdu->data.push_back(pduString);
         pduString = "";
     }
-
+    // conversion test	
+    printf("bin: %s", hexToBin(pdu->data[0]).c_str());
+    
     free(buffer);
     free(firstLineBuff);
     return 0;
@@ -264,6 +298,7 @@ uint16_t rlcParser(RlcPduS *rlcPdu_p, RlcSduS *rlcSdu_p){
 
 uint16_t parseU5(RlcPduS *pdu, RlcSduS *sdu)
 {
+    
     return 0;
 }
 uint16_t parseU10(RlcPduS *pdu, RlcSduS *sdu)
