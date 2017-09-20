@@ -117,12 +117,19 @@ uint16_t rlcComposer(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
 {
     
 
-
-    if (rlcSdu_p->mode == U5 || rlcSdu_p->mode == U10)
+    if (rlcSdu_p->mode == T)
+    {
+        composerTM(rlcSdu_p, rlcPdu_p);
+    }
+    else if (rlcSdu_p->mode == U5 || rlcSdu_p->mode == U10)
     {
         composerUM(rlcSdu_p, rlcPdu_p);
     }
-    
+    else if (rlcSdu_p->mode == A);
+    {
+        composerAM(rlcSdu_p, rlcPdu_p);
+    }
+
     return 0;
 }
 
