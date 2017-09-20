@@ -173,13 +173,6 @@ uint16_t composerUM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
         {
             do
             {
-<<<<<<< Updated upstream
-                tempPduSize -= sizeSdu;
-                tempPduSize -= headerSize;
-                LI.push_back(decToBin(sizeSdu, 11));
-                tempPduSize -= extHeaderSize;
-            } while (tempPduSize > sizeSdu);
-=======
                 do
                 {
                     tempPduSize -= sizeSdu;
@@ -193,14 +186,12 @@ uint16_t composerUM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
                     
                 }
             }
->>>>>>> Stashed changes
         }
     }
 
     /*std::string test = std::vector[1];
     std::string sizePdu = rlcSdu_p->data[1].substr(0, rlcSdu_p->data[1].find(' '));
     std::cout << "Original " << rlcSdu_p->data[1] << "\nNew " << sizePdu << "\n";
-<<<<<<< Updated upstream
     std::cout << decToBin(5, 5) << "\n";*/
 
     return 0;
@@ -209,9 +200,6 @@ uint16_t composerUM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
 uint16_t composerAM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
 {
 
-=======
-    std::cout << decToBin(5, 11) << "\n";
->>>>>>> Stashed changes
     return 0;
 }
 
