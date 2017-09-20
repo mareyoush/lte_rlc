@@ -276,5 +276,21 @@ uint16_t parseT(RlcPduS *pdu, RlcSduS *sdu)
 }
 uint16_t parseA(RlcPduS *pdu, RlcSduS *sdu)
 {
+    for (unsigned int i = 0; i < pdu->data.size(); i++){
+        const char *data = pdu->data[i].c_str();
+        printf("data %d:\n%s\n", i, data);
+        char stringHeader[5];
+        memcpy(stringHeader, data, 4);
+        stringHeader[4] = '\0';
+        printf("header: %s ", stringHeader);
+        long int intHeader = strtol(stringHeader, NULL, BASE_16);
+        int dc = ((intHeader & BIT16) != 0);
+        int rf = ((intHeader & BIT15) != 0);
+        int p  = ((intHeader & BIT14) != 0);
+        int fi = ((intHeader & (BIT13 | BIT12)) >> 11);
+        int e  = ((intHeader & BIT11) != 0);
+        int sn = (intHeader & FIRST_10_BITS);
+        printf("dc=%d, rf=%d, p=%d, fi=%d, e=%d, sn=%d\n", dc, rf, p, fi, e, sn);
+    }
     return 0;
 }
