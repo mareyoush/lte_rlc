@@ -116,8 +116,6 @@ int loadSduFile(std::string filename, RlcSduS *rlcSdu_p)
 //Autor: Adam Ziołecki
 uint16_t rlcComposer(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
 {
-    
-
     if (rlcSdu_p->mode == T)
     {
         composerTM(rlcSdu_p, rlcPdu_p);
