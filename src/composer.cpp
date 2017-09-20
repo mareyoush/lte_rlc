@@ -125,7 +125,7 @@ uint16_t rlcComposer(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
     {
         composerUM(rlcSdu_p, rlcPdu_p);
     }
-    else if (rlcSdu_p->mode == A);
+    else if (rlcSdu_p->mode == A)
     {
         composerAM(rlcSdu_p, rlcPdu_p);
     }
@@ -135,7 +135,13 @@ uint16_t rlcComposer(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
 
 uint16_t composerTM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
 {
-
+    rlcPdu_p->mode = rlcSdu_p->mode;
+    rlcPdu_p->sizePdu = rlcSdu_p->sizePdu;
+    
+    for (int i=0; i < (int)rlcSdu_p->data.size(); i++)
+    {
+        rlcPdu_p->data += rlcSdu_p->data[i] + " ";
+    }
     return 0;
 }
 
