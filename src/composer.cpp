@@ -105,13 +105,14 @@ int loadSduFile(std::string filename, RlcSduS *rlcSdu_p)
     }
     else
     {
-        return 1;   //Blad. Nie poprawny format pliku
+        return 1;   //Blad. Niepoprawny format pliku
     }
     file.close();
 
     std::cout << std::endl;
     return 0;
 }
+
 //Autor: Adam Ziołecki
 uint16_t rlcComposer(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
 {
@@ -133,6 +134,7 @@ uint16_t rlcComposer(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
     return 0;
 }
 
+//Autor: Jakub Nowak
 uint16_t composerTM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
 {
     rlcPdu_p->mode = rlcSdu_p->mode;
@@ -145,6 +147,7 @@ uint16_t composerTM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
     return 0;
 }
 
+//Autor: Adam Ziołecki
 uint16_t composerUM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
 {
     std::string dataPdu = "";
@@ -193,3 +196,4 @@ uint16_t composerAM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
 
     return 0;
 }
+
