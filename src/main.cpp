@@ -45,7 +45,7 @@ int main(int argc, char** argv)
         savePduFile(argv[2], rlcPdu_p);
         return 0;
     }else if(parser_flag){
-        FILE *file = fopen(argv[1], "r");
+        FILE *file = fopen(argv[optind], "r");
         if (file == NULL){
             perror("fopen");
             return EBAD_FILE;
