@@ -37,7 +37,7 @@ std::string binToHex(std::string input){
     std::string temp = "", output = "";
     int wordCount = 0;
     
-    for(int i=0; i<(unsigned)input.length();i++){
+    for(int i=0; i<(int)input.length();i++){
         if(isspace(input[i])) continue;
         temp+=input[i];
         if(temp.length() == 4){
