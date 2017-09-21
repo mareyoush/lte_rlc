@@ -33,17 +33,15 @@ std::string decToBin(int dec, int bitsNumber)
     return output;
 }
 
-//Autor: Jakub Nowak
+//Author: Jakub Nowak
 int loadSduFile(std::string filename, RlcSduS *rlcSdu_p)
 {
     std::string line;
-    
     
     std::ifstream file(filename.c_str());
     
     getline(file, line);
     
-
     std::istringstream var(line);
     std::string mode = "", type_or_data = "";
     int pool = 0, sizePdu=0;
@@ -113,7 +111,7 @@ int loadSduFile(std::string filename, RlcSduS *rlcSdu_p)
     return 0;
 }
 
-//Autor: Adam Ziołecki
+//Author: Adam Ziołecki
 uint16_t rlcComposer(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
 {
     if (rlcSdu_p->mode == T)
@@ -132,7 +130,7 @@ uint16_t rlcComposer(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
     return 0;
 }
 
-//Autor: Jakub Nowak
+//Author: Jakub Nowak
 uint16_t composerTM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
 {
     rlcPdu_p->mode = rlcSdu_p->mode;
@@ -145,7 +143,7 @@ uint16_t composerTM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
     return 0;
 }
 
-//Autor: Adam Ziołecki
+//Author: Adam Ziołecki
 uint16_t composerUM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
 {
     /*std::string dataPdu = "";
@@ -180,10 +178,10 @@ uint16_t composerUM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
                 tempPduSize -= extHeaderSize;
             } while (tempPduSize > sizeSdu);
                 
-            dataPdu += FI + E + SN;
-            for (int i = 0; i < LI.size(); ++i)
+            dataPdu += FI + E + std::to_string(SN);
+            for (int i = 0; i < (int)LI.size(); ++i)
             {
-                if (LI.last == LI[i])
+                if (LI.back() == LI[i])
                     dataPdu += "0";
                 else 
                     dataPdu += "1";
@@ -282,3 +280,28 @@ uint16_t composerAM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
     return 0;
 }
 
+//Author: Jakub Nowak
+int savePduFile(std::string filename, RlcPduS *rlcPdu_p)
+{
+    std::string mode;
+    if(rlcPdu_p->mode == 1)
+        mode = "T";
+    else if (rlcPdu_p->mode == 2)
+        mode = "U5";
+    else if (rlcPdu_p->mode == 3)
+        mode = "U10";
+    else if (rlcPdu_p->mode == 4)
+        mode = "A";
+    else
+        return 1;
+    
+    std::ofstream outfile;
+    outfile.open(filename);
+    if (rlcPdu_p->sizePdu == 0)
+        outfile << mode << "\n" << rlcPdu_p->data;
+    else
+        outfile << mode << " " << rlcPdu_p->sizePdu << "\n" << rlcPdu_p->data;
+    outfile.close();
+
+    return 0;
+}

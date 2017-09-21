@@ -11,6 +11,7 @@ int main()
     RlcPduS *rlcPdu_p = new RlcPduS();
     loadSduFile("e1.txt", rlcSdu_p);
     rlcComposer(rlcSdu_p, rlcPdu_p);
+    savePduFile("output.txt", rlcPdu_p);
     return 0;
 }
 
