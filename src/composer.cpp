@@ -269,7 +269,7 @@ uint16_t composerUM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
             tempPduSize -= sizeSduS[i+j];
             ++j;
         }
-        if (rlcSdu_p->data[0] == rlcSdu_p->data[i]) //First SDU
+        if (0 == i) //First SDU
         {
             FI = "0";
         }
