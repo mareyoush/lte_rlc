@@ -11,6 +11,7 @@
 #define EBAD_FORMAT 2
 #define EBAD_PDU_SIZE 3
 #define EBAD_DATA_LENGTH 4
+#define EBAD_FILE 5
 
 #define BIT1  0x0001
 #define BIT2  0x0002

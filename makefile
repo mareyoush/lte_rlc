@@ -1,6 +1,6 @@
 OUT = rlcLab
 CC = g++ 
-CFLAGS = -Wall -Werror -g -Iinclude 
+CFLAGS = -Wall -Werror -g -Iinclude -std=c++11
 LDFLAGS = 
 SOURCES = ./src/*
 ARGS = 
