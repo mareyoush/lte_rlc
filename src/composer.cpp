@@ -170,9 +170,11 @@ uint16_t composerTM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
     rlcPdu_p->mode = rlcSdu_p->mode;
     rlcPdu_p->sizePdu = rlcSdu_p->sizePdu;
     
+    rlcPdu_p->data.push_back("");
+
     for (int i=0; i < (int)rlcSdu_p->data.size(); i++)
     {
-        rlcPdu_p->data += rlcSdu_p->data[i] + " ";
+        rlcPdu_p->data[0] += rlcSdu_p->data[i] + " ";
     }
     return 0;
 }
@@ -325,9 +327,9 @@ int savePduFile(std::string filename, RlcPduS *rlcPdu_p)
     std::ofstream outfile;
     outfile.open(filename);
     if (rlcPdu_p->sizePdu == 0)
-        outfile << mode << "\n" << rlcPdu_p->data;
+        outfile << mode << "\n" << rlcPdu_p->data[0];
     else
-        outfile << mode << " " << rlcPdu_p->sizePdu << "\n" << rlcPdu_p->data;
+        outfile << mode << " " << rlcPdu_p->sizePdu << "\n" << rlcPdu_p->data[0];
     outfile.close();
 
     return 0;

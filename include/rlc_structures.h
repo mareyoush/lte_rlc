@@ -1,19 +1,12 @@
 #ifndef RLC_STRUCTURES_H
 #define RLC_STRUCTURES_H
-<<<<<<< HEAD
+
 #include <vector>
 #include <string>
 #include <stdint.h>
 
-enum rlcMode {T, U5, U10, A};
-enum typeSdu {D, C};
-=======
-
-#include <string>
-#include <vector>
 enum rlcMode {X, T, U5, U10, A};
 enum typeSdu {Y, D, C};
->>>>>>> composer
 
 struct RlcSduS
 {
@@ -29,7 +22,7 @@ struct RlcPduS
 {
     rlcMode mode = X;
     int sizePdu = 0;
-    std::string data;
+    std::vector<std::string> data;
 };
 
 typedef struct pduHeaderU5

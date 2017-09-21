@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
+#include "rlc_structures.h"
 
 bool rlcTest(RlcSduS *rlcSdu_p, U8 *rlcPdu_p){
 

@@ -1,5 +1,6 @@
 #ifndef PARSER_H
 #define PARSER_H
+
 #include "rlc_structures.h"
 #include <stdint.h>
 #include <string>

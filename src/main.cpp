@@ -1,10 +1,10 @@
-<<<<<<< HEAD
 #include <stdlib.h>
 #include <iostream>
 #include <getopt.h>
 #include "rlc_structures.h"
 #include "parser.h"
 #include "composer.h"
+
 //Author: Dawid Bryłka
 int main(int argc, char** argv)
 {
@@ -69,22 +69,6 @@ int main(int argc, char** argv)
             std::cout<<"Test has failed" <<std::endl;
         }
     }
-=======
-#include <iostream>
-#include <stdlib.h>
-#include <fstream>
-#include <vector>
-#include "composer.h"
-
-
-int main()
-{
-    RlcSduS *rlcSdu_p = new RlcSduS();
-    RlcPduS *rlcPdu_p = new RlcPduS();
-    loadSduFile("e1.txt", rlcSdu_p);
-    rlcComposer(rlcSdu_p, rlcPdu_p);
-    savePduFile("output.txt", rlcPdu_p);
->>>>>>> composer
     return 0;
 }
 

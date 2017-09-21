@@ -293,6 +293,10 @@ uint16_t rlcParser(RlcPduS *rlcPdu_p, RlcSduS *rlcSdu_p){
             ret = parseU10(rlcPdu_p, rlcSdu_p);
             break;
         }
+        case X:
+        {
+            break;
+        }
     } 
     return ret;
 }
