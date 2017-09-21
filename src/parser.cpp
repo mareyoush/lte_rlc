@@ -276,18 +276,22 @@ uint16_t rlcParser(RlcPduS *rlcPdu_p, RlcSduS *rlcSdu_p){
         case T:
         {
             ret = parseT(rlcPdu_p, rlcSdu_p);
+            break;
         }
         case A:
         {
             ret = parseA(rlcPdu_p, rlcSdu_p);
+            break;
         }
         case U5:
         {
             ret = parseU5(rlcPdu_p, rlcSdu_p);
+            break;
         }
         case U10:
         {
             ret = parseU10(rlcPdu_p, rlcSdu_p);
+            break;
         }
     } 
     return ret;
@@ -350,12 +354,13 @@ uint16_t parseA(RlcPduS *pdu, RlcSduS *sdu)
         // extract one data pdu from structure
         const char *data = pdu->data[i].c_str();
         printf("PDU %d: ", i);
-        char stringHeader[headerOffset + 1];
+        char *stringHeader = new char[headerOffset + 1];
         // copy header to sepparate variable
         memcpy(stringHeader, data, headerOffset);
         stringHeader[4] = '\0';
         printf("header: %s ", stringHeader);
         long int intHeader = strtol(stringHeader, NULL, BASE_16);
+        delete[] stringHeader;
 
         // check header insides
         info.dc = ((intHeader & BIT16) != 0);
@@ -464,7 +469,17 @@ int readExtension(std::string extensionPart, std::vector<long int> *liVec)
 // struct will be filled depending on contents in the data string
 uint16_t readControlAMDPDU(std::string pdu, struct pduAMDInfo *info)
 {
-    //const char *charData = pdu.c_str();
-    //char rlcControlPDUheader[5];
+    std::string binPdu = hexToBin(pdu);
+    std::string strDc = binPdu.substr(0, 1);
+    std::string strCpt = binPdu.substr(1,3);
+    std::string strAckSn = binPdu.substr(4, 10);
+    std::string strE1 = binPdu.substr(14, 1);
+    printf("dc: %s cpt: %s ack_sn: %s e1: %s\n", strDc.c_str(), strCpt.c_str(), strAckSn.c_str(), strE1.c_str());
+
+    // if NACK set follows
+    if (strE1[0] == '1'){
+
+    }
+
     return 0;
 }
