@@ -32,7 +32,41 @@ std::string decToBin(int dec, int bitsNumber)
     std::reverse(output.begin(), output.end());
     return output;
 }
-
+//Author: Dawid Bryłka
+std::string binToHex(std::string input){
+    std::string temp = "", output = "";
+    int wordCount = 0;
+    
+    for(int i=0; i<input.length();i++){
+        if(isspace(input[i])) continue;
+        temp+=input[i];
+        if(temp.length() == 4){
+                if(!temp.compare("0000")) output.append("0");
+                else if(!temp.compare("0001")) output.append("1");
+                else if(!temp.compare("0010")) output.append("2");
+                else if(!temp.compare("0011")) output.append("3");
+                else if(!temp.compare("0100")) output.append("4");
+                else if(!temp.compare("0101")) output.append("5");
+                else if(!temp.compare("0110")) output.append("6");
+                else if(!temp.compare("0111")) output.append("7");
+                else if(!temp.compare("1000")) output.append("8");
+                else if(!temp.compare("1001")) output.append("9");
+                else if(!temp.compare("1010")) output.append("A");
+                else if(!temp.compare("1011")) output.append("B");
+                else if(!temp.compare("1100")) output.append("C");
+                else if(!temp.compare("1101")) output.append("D");
+                else if(!temp.compare("1110")) output.append("E");
+                else if(!temp.compare("1111")) output.append("F");
+                wordCount++;
+                temp = "";
+        }
+        if(wordCount==2){
+            output.append(" ");
+            wordCount=0;
+        }
+    }
+   return output;
+}
 //Author: Jakub Nowak
 int loadSduFile(std::string filename, RlcSduS *rlcSdu_p)
 {
