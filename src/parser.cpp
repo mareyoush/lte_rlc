@@ -369,7 +369,7 @@ uint16_t parseA(RlcPduS *pdu, RlcSduS *sdu)
         if (info.dc == 0){
             printf("Control PDU\n");
             ret = readControlAMDPDU(pdu->data[i], &info);
-            pduS.push_back(info);
+            //pduS.push_back(info);
         }
         // --------------- RLC control PDU ------------------------
         
