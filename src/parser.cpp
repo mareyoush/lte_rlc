@@ -6,11 +6,12 @@
 #include <string>
 #include <iostream>
 #include <cstdio>
+#include <bitset>
 
 std::string hexToBin(std::string hex)
 {
     std::string output = "";
-    for(int i = 0; (unsigned)i < hex.length(); ++i)
+    for(unsigned int i = 0; i < hex.length(); ++i)
     {
         switch(hex[i])
 	{
@@ -294,11 +295,40 @@ uint16_t rlcParser(RlcPduS *rlcPdu_p, RlcSduS *rlcSdu_p){
 
 uint16_t parseU5(RlcPduS *pdu, RlcSduS *sdu)
 {
+    for (unsigned int i = 0; i < pdu->data.size(); ++i){
     
+        std::string headerStr = hexToBin(pdu->data[i].substr(0,2));
+
+        pduHeaderU5 pduh;
+	pduh.fi = std::bitset<32>(headerStr.substr(0,2)).to_ulong();
+	pduh.e = std::bitset<32>(headerStr.substr(2,1)).to_ulong();
+	pduh.sn = std::bitset<32>(headerStr.substr(3,5)).to_ulong();
+
+	printf("FI: %u, E: %u, SN: %u", pduh.fi, pduh.e, pduh.sn);
+
+	//parse li
+    }
+
     return 0;
 }
 uint16_t parseU10(RlcPduS *pdu, RlcSduS *sdu)
-{
+{	
+    for (unsigned int i = 0; i < pdu->data.size(); ++i){
+        
+        std::string headerStr = hexToBin(pdu->data[i].substr(0,4));
+
+	pduHeaderU10 pduh;
+	pduh.r1_1 = std::bitset<32>(headerStr.substr(0,1)).to_ulong();
+	pduh.r1_2 = std::bitset<32>(headerStr.substr(1,1)).to_ulong();
+	pduh.r1_3 = std::bitset<32>(headerStr.substr(2,1)).to_ulong();
+	pduh.fi = std::bitset<32>(headerStr.substr(3,2)).to_ulong();
+	pduh.e = std::bitset<32>(headerStr.substr(5,1)).to_ulong();
+	pduh.sn = std::bitset<32>(headerStr.substr(6,10)).to_ulong();
+
+	printf("R1: %u, R1: %u, R1: %u, FI: %u, E: %u, SN: %u\n", pduh.r1_1, pduh.r1_2, pduh.r1_3, pduh.fi, pduh.e, pduh.sn);
+	
+	//parse li
+    }
     return 0;
 }
 uint16_t parseT(RlcPduS *pdu, RlcSduS *sdu)
