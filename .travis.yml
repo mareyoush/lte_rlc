@@ -3,4 +3,9 @@ compiler: g++
 
 
 script:
+<<<<<<< HEAD
 - make && make run
+=======
+  make && make run
+
+>>>>>>> composer
