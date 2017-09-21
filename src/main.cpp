@@ -46,6 +46,10 @@ int main(int argc, char** argv)
         return 0;
     }else if(parser_flag){
         FILE *file = fopen(argv[optind], "r");
+        if (file == NULL){
+            perror("fopen");
+            return EBAD_FILE;
+        }
         ret = check_pdu_file(file, rlcPdu_p);
         if (ret != 0){
             printf("Error returned, exiting with code %d", ret);
