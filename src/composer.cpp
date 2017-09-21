@@ -178,57 +178,9 @@ uint16_t composerTM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
 }
 
 //Author: Adam Ziołecki
+//Pachoł: Dawid Bryłka
 uint16_t composerUM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
 {
-    /*std::string dataPdu = "";
-    std::string FI = "";
-    std::string E = "";
-    std::vector<std::string> LI;
-    
-    unsigned int SN = 0;
-
-    int i = 0;
-    int headerSize = 8;     //size in bits
-    int extHeaderSize = 12; //size in bits
-    int tempPduSize = rlcSdu_p->sizePdu;
-    int sizeSdu = std::stoi(rlcSdu_p->data[i].substr(0, rlcSdu_p->data[i].find(' ')));
-    
-    for (unsigned int i = 0; i < rlcSdu_p->data.size(); i++)
-    {
-        if(rlcSdu_p->sizePdu == sizeSdu-1)
-        {
-            dataPdu += "000";   // FI = 00; E = 0
-            dataPdu += decToBin(SN, 5);
-            SN++;
-            dataPdu += rlcSdu_p->data[i];
-        }
-        else if(rlcSdu_p->sizePdu > sizeSdu)
-        {
-            do
-            {
-                tempPduSize -= sizeSdu;
-                tempPduSize -= headerSize/8;
-                LI.push_back(decToBin(sizeSdu, 11));
-                tempPduSize -= extHeaderSize;
-            } while (tempPduSize > sizeSdu);
-                
-            dataPdu += FI + E + std::to_string(SN);
-            for (int i = 0; i < (int)LI.size(); ++i)
-            {
-                if (LI.back() == LI[i])
-                    dataPdu += "0";
-                else 
-                    dataPdu += "1";
-                dataPdu += LI[i];
-            }
-
-            if (tempPduSize < 0)
-            {
-                
-            }
-        }
-    }*/
-
     std::vector<int> sizeSduS;
 
     for (unsigned int i = 0; i < rlcSdu_p->data.size(); i++)
@@ -236,13 +188,32 @@ uint16_t composerUM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
         sizeSduS.push_back(std::stoi(rlcSdu_p->data[i].substr(0, rlcSdu_p->data[i].find(' '))));
     }
 
-    /*for (unsigned int i = 0; i < rlcSdu_p->data.size();)
+    int tempPduSize = 0;
+    int i = 0;
+    std::string FI = "";
+    std::string prevFI = "";
+    std::string E = "";
+    std::string extHeader = "";
+    std::string padding = "";
+    int leftSizeSdu = 0;
+    int SN = 0;
+    std::string output = "";
+
+    while (i < int(rlcSdu_p->data.size()))
     {
+        output = "";
+        FI = "";
+        E = "0";
+        extHeader = "";
         tempPduSize = rlcSdu_p->sizePdu;
         int j = 0;
+        
         while (tempPduSize > 0)
         {
-            tempPduSize -= sizeSduS[i];
+            if ((i+j) > int(rlcSdu_p->data.size()))
+                break;
+            tempPduSize -= leftSizeSdu;
+            tempPduSize -= sizeSduS[i+j];
             ++j;
         }
         if (rlcSdu_p->data[0] == rlcSdu_p->data[i]) //First SDU
@@ -250,52 +221,74 @@ uint16_t composerUM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
             FI = "0";
         }
 
-    }*/
+        int usableSpacePdu = 0;
+        usableSpacePdu += leftSizeSdu;
+        for (int m = i; m < i+j; m++)
+        {
+            usableSpacePdu += sizeSduS[m];
+        }
 
-    int tempPduSize = 0;
-    int i = 0;
-    std::string FI = "";
-    std::string E = "";
-    std::string extHeader = "";
-    while (i < 3)
-    {
-        FI = "";
-        E = "0";
-        extHeader = "";
-        tempPduSize = rlcSdu_p->sizePdu;
-        int j = 0;
-        while (tempPduSize > 0)
+        usableSpacePdu += 1; // Header size (in bytes)
+
+        if ((j*12) % 8 != 0)
+            usableSpacePdu += ((j-1)*12)/8;
+        else
+            usableSpacePdu += ((j-1)*12)/8 + 1;
+        
+        if (usableSpacePdu == rlcSdu_p->sizePdu)
         {
-            tempPduSize -= sizeSduS[i+j];
-            ++j;
+            FI += "0";
+            leftSizeSdu = 0;
         }
-        if (0 == i) //First SDU
+        else if (usableSpacePdu > rlcSdu_p->sizePdu)
         {
-            FI = "0";
+            FI += "1";
+            leftSizeSdu = usableSpacePdu - rlcSdu_p->sizePdu;
         }
+        else if (usableSpacePdu < rlcSdu_p->sizePdu)
+        {
+            FI += "0";
+        }
+        //std::cout << "J: " << j << "\n";
         int k = 1;
         while (j > k)  // Wiecej wiecej niz jeden Sdu miesci sie w Pdu
         {
             E = "1";
             if (k == (j-1))
+            {
                 extHeader += "0";
+            }
             else
+            {
                 extHeader += "1";
-            extHeader += decToBin(sizeSduS[i], 11); 
+            }
+            
+            if (k == 1)
+            {
+                extHeader += decToBin(sizeSduS[i+j-1] - leftSizeSdu, 11);
+            }
+            else
+            {
+                extHeader += decToBin(sizeSduS[i], 11); 
+            }
             ++k;
         }
+
         if (extHeader.size() % 8 != 0)
         {
             extHeader += "0000";    // Padding
         }
-        int usableSpacePdu = 0;
-        for (int m = i; m < i+j; m++)
-        {
-            usableSpacePdu += sizeSduS[m];
 
+        output += FI + E + decToBin(SN, 5);
+        output += extHeader;
+        for (int m = 0; m < j; ++m)
+        {
+            output += rlcSdu_p->data[m]  + " ";
         }
-        usableSpacePdu += 1 + (extHeader.size()/8); // Header size + extension header size (in bytes)
-        std::cout << usableSpacePdu << "\n";
+        
+        std::cout << output << "\n";
+
+        ++SN;
         i = i+j;
     }
     
