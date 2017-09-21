@@ -179,10 +179,10 @@ uint16_t composerUM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
                 tempPduSize -= extHeaderSize;
             } while (tempPduSize > sizeSdu);
                 
-            dataPdu += FI + E + SN;
-            for (int i = 0; i < LI.size(); ++i)
+            dataPdu += FI + E + std::to_string(SN);
+            for (int i = 0; i < (int)LI.size(); ++i)
             {
-                if (LI.last == LI[i])
+                if (LI.back() == LI[i])
                     dataPdu += "0";
                 else 
                     dataPdu += "1";
