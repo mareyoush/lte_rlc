@@ -37,5 +37,20 @@ uint16_t parseU10(RlcPduS *pdu, RlcSduS *sdu);
 uint16_t parseT(RlcPduS *pdu, RlcSduS *sdu);
 uint16_t parseA(RlcPduS *pdu, RlcSduS *sdu);
 int readExtension(std::string binExtensionPart, std::vector<long int> *li);
+uint16_t readControlAMDPDU(std::string data, struct pduAMDInfo *info);
 int ishex(char c);
+
+// Information about single AMD PDU 
+struct pduAMDInfo{
+    int dc;
+    int rf;
+    int p;
+    int fi;
+    int e;
+    int sn;
+    std::string data;
+    std::vector<long int> li;
+};
+
 #endif
+

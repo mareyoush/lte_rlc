@@ -52,7 +52,7 @@ uint16_t check_pdu_file(FILE *file, struct RlcPduS *pdu)
         return EFILE_EMPTY;
     }
 
-    char *buffer = (char*) malloc(fsize * sizeof(char) + 1);
+    char *buffer = new char[fsize + 1];
     fread(buffer, fsize, 1, file);
     buffer[fsize] = '\0';
 
@@ -64,7 +64,7 @@ uint16_t check_pdu_file(FILE *file, struct RlcPduS *pdu)
         firstLineLen++;
     }
        
-    char *firstLineBuff = (char*) malloc(firstLineLen * sizeof(char) + 1);
+    char *firstLineBuff = new char[firstLineLen + 1];
     memcpy(firstLineBuff, buffer, firstLineLen);
     firstLineBuff[firstLineLen] = '\0';
 
@@ -74,8 +74,8 @@ uint16_t check_pdu_file(FILE *file, struct RlcPduS *pdu)
     
     if ( (*c) != 'A' && (*c) != 'U' && (*c) != 'T' ){
         printf("Bad file format: first line must be mode [size]\n");
-        free(buffer);
-        free(firstLineBuff);
+        delete[] buffer;
+        delete[] firstLineBuff;
         return EBAD_FORMAT;
     }
 
@@ -85,8 +85,8 @@ uint16_t check_pdu_file(FILE *file, struct RlcPduS *pdu)
         for (; (*c) != '\0'; c++){
             if (!isspace(*c)){
                 printf("Bad file format: no characters allowed after 'T' in first line\n");
-                free(buffer);
-                free(firstLineBuff);
+                delete[] buffer;
+                delete[] firstLineBuff;
                 return EBAD_FORMAT;
             }
         }
@@ -100,8 +100,8 @@ uint16_t check_pdu_file(FILE *file, struct RlcPduS *pdu)
         c++;
         if (!isspace(*c)){
             printf("Bad file format: space required after 'A'\n");
-            free(buffer);
-            free(firstLineBuff);
+            delete[] buffer;
+            delete[] firstLineBuff;
             return EBAD_FORMAT;
         }
         while (isspace(*c)) // skip whitespaces
@@ -110,16 +110,16 @@ uint16_t check_pdu_file(FILE *file, struct RlcPduS *pdu)
         for (; (*c) != '\0'; c++){
             if (!isdigit(*c)){
                 printf("Bad file format: only digits allowed after 'A'\n");
-                free(buffer);
-                free(firstLineBuff);
+                delete[] buffer;
+                delete[] firstLineBuff;
                 return EBAD_FORMAT;
             }
         }
         pduSize = atoi(currentPos);
         if (pduSize <= 0){
             printf("Bad PDU size\n");
-            free(buffer);
-            free(firstLineBuff);
+            delete[] buffer;
+            delete[] firstLineBuff;
             return EBAD_PDU_SIZE;
         }
         printf("Acknowledgment mode, size:%d\n", pduSize);
@@ -132,8 +132,8 @@ uint16_t check_pdu_file(FILE *file, struct RlcPduS *pdu)
         c++;
         if ( (*c) != '5' && (*c) != '1'){
             printf("Bad file format: only '5' or '1' after 'U' allowed\n");
-            free(buffer);
-            free(firstLineBuff);
+            delete[] buffer;
+            delete[] firstLineBuff;
             return EBAD_FORMAT;
         }
 
@@ -142,8 +142,8 @@ uint16_t check_pdu_file(FILE *file, struct RlcPduS *pdu)
             c++;
             if (!isspace(*c)){
                 printf("Bad file format: space required after 'U5'\n");
-                free(buffer);
-                free(firstLineBuff);
+                delete[] buffer;
+                delete[] firstLineBuff;
                 return EBAD_FORMAT;
             }
             while (isspace(*c)) // skip whitespaces
@@ -153,16 +153,16 @@ uint16_t check_pdu_file(FILE *file, struct RlcPduS *pdu)
             for (; (*c) != '\0'; c++){
                 if (!isdigit(*c)){
                     printf("Bad file format: only digits allowed after 'U5'l\n");
-                    free(buffer);
-                    free(firstLineBuff);
+                    delete[] buffer;
+                    delete[] firstLineBuff;
                     return EBAD_FORMAT;
                 }
             }
             pduSize = atoi(currentPos);
             if (pduSize <= 0){
                 printf("Bad PDU size\n");
-                free(buffer);
-                free(firstLineBuff);
+                delete[] buffer;
+                delete[] firstLineBuff;
                 return EBAD_PDU_SIZE;
             }
             printf("U5 mode, size:%d\n", pduSize);
@@ -175,15 +175,15 @@ uint16_t check_pdu_file(FILE *file, struct RlcPduS *pdu)
             c++;
             if((*c) != '0'){
                 printf("Bad file format: only '0' allowed after 'U1'\n");
-                free(buffer);
-                free(firstLineBuff);
+                delete[] buffer;
+                delete[] firstLineBuff;
                 return EBAD_FORMAT;
             }
             c++;
             if (!isspace(*c)){
                 printf("Bad file format: space required after 'U10'\n");
-                free(buffer);
-                free(firstLineBuff);
+                delete[] buffer;
+                delete[] firstLineBuff;
                 return EBAD_FORMAT;
             }
             while (isspace(*c)) // skip whitespaces
@@ -192,16 +192,16 @@ uint16_t check_pdu_file(FILE *file, struct RlcPduS *pdu)
             for (; (*c) != '\0'; c++){
                 if (!isdigit(*c)){
                     printf("Bad file format: only digits allowed after 'U10'\n");
-                    free(buffer);
-                    free(firstLineBuff);
+                    delete[] buffer;
+                    delete[] firstLineBuff;
                     return EBAD_FORMAT;
                 }
             }
             pduSize = atoi(currentPos);
             if (pduSize <= 0){
                 printf("Bad PDU size\n");
-                free(buffer);
-                free(firstLineBuff);
+                delete[] buffer;
+                delete[] firstLineBuff;
                 return EBAD_PDU_SIZE;
             }
             printf("U10 mode, size:%d\n", pduSize);
@@ -222,8 +222,8 @@ uint16_t check_pdu_file(FILE *file, struct RlcPduS *pdu)
             ;
         else{
             printf("Invalid character in data:%c\n", *c);
-            free(buffer);
-            free(firstLineBuff);
+            delete[] buffer;
+            delete[] firstLineBuff;
             return EBAD_FORMAT;
         }
         c++;
@@ -232,8 +232,8 @@ uint16_t check_pdu_file(FILE *file, struct RlcPduS *pdu)
     // (no half bytes!)
     if (  (strlen(data.c_str()) % 2) != 0 ){
         printf("Bad data length: only even number of hex digits allowed\n");
-        free(buffer);
-        free(firstLineBuff);
+        delete[] buffer;
+        delete[] firstLineBuff;
         return EBAD_DATA_LENGTH;
     } 
 
@@ -253,11 +253,9 @@ uint16_t check_pdu_file(FILE *file, struct RlcPduS *pdu)
         pdu->data.push_back(pduString);
         pduString = "";
     }
-    // conversion test	
-    printf("bin: %s\n", hexToBin(pdu->data[0]).c_str());
     
-    free(buffer);
-    free(firstLineBuff);
+    delete[] buffer;
+    delete[] firstLineBuff;
     return 0;
 }
 // Author: Adam Wroblak
@@ -311,67 +309,84 @@ uint16_t parseT(RlcPduS *pdu, RlcSduS *sdu)
 // Author : Adam Wroblak
 uint16_t parseA(RlcPduS *pdu, RlcSduS *sdu)
 {
+    uint16_t ret = 0;
+    std::vector<pduAMDInfo> pduS;
     for (unsigned int i = 0; i < pdu->data.size(); i++){
+        struct pduAMDInfo info;
+
+        // by default header is 2 bytes (4 hex digits)
+        int headerOffset = 4;
+
         // extract one data pdu from structure
         const char *data = pdu->data[i].c_str();
-        printf("\nPDU %d:\n", i);
-        char stringHeader[5];
-        //char *data_p = NULL; // beginning of data part will be stored here, if PDU will be data PDU
+        printf("PDU %d: ", i);
+        char stringHeader[headerOffset + 1];
         // copy header to sepparate variable
-        memcpy(stringHeader, data, 4);
+        memcpy(stringHeader, data, headerOffset);
         stringHeader[4] = '\0';
         printf("header: %s ", stringHeader);
         long int intHeader = strtol(stringHeader, NULL, BASE_16);
 
         // check header insides
-        int dc = ((intHeader & BIT16) != 0);
+        info.dc = ((intHeader & BIT16) != 0);
 
         // --------------- RLC control PDU ------------------------
-        if (dc == 0){
+        if (info.dc == 0){
             printf("Control PDU\n");
-
+            ret = readControlAMDPDU(pdu->data[i], &info);
+            pduS.push_back(info);
         }
         // --------------- RLC control PDU ------------------------
         
         // --------------- RLC data PDU ---------------------------
         else{
+            
             printf("Data PDU\n");
-            int rf = ((intHeader & BIT15) != 0);
-            int p  = ((intHeader & BIT14) != 0);
-            int fi = ((intHeader & (BIT13 | BIT12)) >> 11);
-            int e  = ((intHeader & BIT11) != 0);
-            int sn = (intHeader & FIRST_10_BITS);
-            printf("dc=%d, rf=%d, p=%d, fi=%d, e=%d, sn=%d\n", dc, rf, p, fi, e, sn);
+            info.dc = 1;
+            info.rf = ((intHeader & BIT15) != 0);
+            info.p  = ((intHeader & BIT14) != 0);
+            info.fi = ((intHeader & (BIT13 | BIT12)) >> 11);
+            info.e  = ((intHeader & BIT11) != 0);
+            info.sn = (intHeader & FIRST_10_BITS);
             
             // ---------------- extension flag set-------------------
-            if (e){
+            if (info.e){
                 // I should think of setting the beggining of 
                 // extension part in other places in case when
                 // in future LSF SO could occur
-                std::string extensionPart(&data[4]);   
+                std::string extensionPart(&data[headerOffset]); 
                 
-                std::vector<long int> li;
-                int offset = readExtension(extensionPart, &li);
-                printf("Bytes read: %d, extensions: ", offset);
-                for (unsigned int i = 0; i < li.size(); i++){
-                    printf("%lu ", li[i]);
-                }
-                printf("\n");
+                int extensionRead = readExtension(extensionPart, &info.li);  
+                info.data = std::string(&data[headerOffset + extensionRead * 2]);
+                pduS.push_back(info);          
             }
             // ---------------- extension flag set -----------------
 
             // ---------------- exntension flag not set ------------
             else{
-                const char *c = &data[4]; // this is where header ends
-                printf("data part(one SDU): %s\n", c);
+                info.data = std::string(&data[headerOffset]);
+                printf("data part(one SDU): %s\n", info.data.c_str());
+                pduS.push_back(info);
             }
             // ---------------- exntension flag not set ------------
         }
         // ------------- RLC data PDU -----------------------------
 
     }
-    
-    return 0;
+
+    // chop into SDUs
+    if (!pduS.empty()){
+        for (unsigned int i = 0; i < pduS.size(); i++){
+            printf("PDU %u dc=%d, rf=%d, p=%d, fi=%d, e=%d, sn=%d\n"
+            ,i , pduS[i].dc, pduS[i].rf, pduS[i].p, pduS[i].fi, pduS[i].e, pduS[i].sn);
+            printf("DATA: %s li: ", pduS[i].data.c_str());
+            for (unsigned int j = 0; j < pduS[i].li.size(); j++){
+                printf("%lu ", pduS[i].li[j]);
+            }
+            printf("\n");
+        }
+    }
+    return ret;
 }
 
 // Author: Adam Wroblak
@@ -381,40 +396,45 @@ uint16_t parseA(RlcPduS *pdu, RlcSduS *sdu)
 // extension part beggins
 int readExtension(std::string extensionPart, std::vector<long int> *liVec)
 {
-    printf("e flag set, read from:\n%s\n", extensionPart.c_str());
     std::string binExtensionPart = hexToBin(extensionPart);
-    printf("In binary:\n%s\n", binExtensionPart.c_str());
 
     // eFlag tells if extension part ends or not
     // 0 - ends, 1 - doesn't end 
     std::string eFlag = "1"; // for first iteration of loop
 
-    // I need to count number of bytes read
+    // I need to count number of bits read
     // for checking if padding is present
-    int bytesRead = 0;  
-    while (eFlag == "1"){   // while there is next length indicator to get
-                    
+    int bitsRead = 0;  
+    while (eFlag == "1"){   // while there is next length indicator to get                
         // Check if extension flag is set
         // and remove it
         eFlag = binExtensionPart.substr(0, 1);
         binExtensionPart.erase(0,1);
-        bytesRead += 1;
+        bitsRead += 1;
 
         // Get LI 
         std::string lengthIndicator = binExtensionPart.substr(0, 11);
         binExtensionPart.erase(0,11);
-        bytesRead += 11;
+        bitsRead += 11;
 
         long int li = strtoul(lengthIndicator.c_str(), NULL, BASE_2);
-        printf("e=%s li=%s (%ld)\n", eFlag.c_str(), lengthIndicator.c_str(), li);
         liVec->push_back(li);
     }
 
     // check if padding is present
-    while ( (bytesRead % 8) != 0 ){
+    while ( (bitsRead % 8) != 0 ){
         binExtensionPart.erase(0,1);
-        bytesRead++;
+        bitsRead++;
     }
-    printf("Data left: %s\n length: %lu\n", binExtensionPart.c_str(), binExtensionPart.length());
-    return bytesRead;
+    return bitsRead / 8;
+}
+
+
+// Author: Adam Wroblak
+// struct will be filled depending on contents in the data string
+uint16_t readControlAMDPDU(std::string pdu, struct pduAMDInfo *info)
+{
+    //const char *charData = pdu.c_str();
+    //char rlcControlPDUheader[5];
+    return 0;
 }
