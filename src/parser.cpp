@@ -260,17 +260,15 @@ uint16_t check_pdu_file(FILE *file, struct RlcPduS *pdu)
     free(firstLineBuff);
     return 0;
 }
-
+// Author: Adam Wroblak
 int ishex(char c){
-    if( isdigit(c)
+    return ( isdigit(c)
         || c == 'a' || c == 'A' 
         || c == 'b' || c == 'B'
         || c == 'c' || c == 'C'
         || c == 'd' || c == 'D'
         || c == 'e' || c == 'E'
-        || c == 'f' || c == 'F')
-        return 1;
-    return 0;
+        || c == 'f' || c == 'F');
 }
 
 uint16_t rlcParser(RlcPduS *rlcPdu_p, RlcSduS *rlcSdu_p){
@@ -309,6 +307,8 @@ uint16_t parseT(RlcPduS *pdu, RlcSduS *sdu)
 {
     return 0;
 }
+
+// Author : Adam Wroblak
 uint16_t parseA(RlcPduS *pdu, RlcSduS *sdu)
 {
     for (unsigned int i = 0; i < pdu->data.size(); i++){
@@ -345,24 +345,18 @@ uint16_t parseA(RlcPduS *pdu, RlcSduS *sdu)
             
             // ---------------- extension flag set-------------------
             if (e){
-                std::string extensionPart(&data[4]);
-                printf("e flag set, read from:\n%s\n", extensionPart.c_str());
-                std::string binExtensionPart = hexToBin(extensionPart);
-                printf("In binary:\n%s\n", binExtensionPart.c_str());
-                // eFlag tells if extension part ends or not
-                // 0 - ends, 1 - doesn't end 
-                std::string eFlag = "1"; // for first iteration of loop
-
-                while (eFlag == "1"){   // while there is next length indicator to get
-                    
-                    eFlag = binExtensionPart.substr(0, 1);
-                    binExtensionPart.erase(0,1);
-
-                    std::string lengthIndicator = binExtensionPart.substr(0, 11);
-                    binExtensionPart.erase(0,11);
-                    long int li = strtoul(lengthIndicator.c_str(), NULL, BASE_2);
-                    printf("e=%s li=%s (%ld)\n", eFlag.c_str(), lengthIndicator.c_str(), li);
+                // I should think of setting the beggining of 
+                // extension part in other places in case when
+                // in future LSF SO could occur
+                std::string extensionPart(&data[4]);   
+                
+                std::vector<long int> li;
+                int offset = readExtension(extensionPart, &li);
+                printf("Bytes read: %d, extensions: ", offset);
+                for (unsigned int i = 0; i < li.size(); i++){
+                    printf("%lu ", li[i]);
                 }
+                printf("\n");
             }
             // ---------------- extension flag set -----------------
 
@@ -378,4 +372,49 @@ uint16_t parseA(RlcPduS *pdu, RlcSduS *sdu)
     }
     
     return 0;
+}
+
+// Author: Adam Wroblak
+// returns bytes read from Extension part
+// Lengths will be stored in int vector
+// extensionPart is part of PDU from where 
+// extension part beggins
+int readExtension(std::string extensionPart, std::vector<long int> *liVec)
+{
+    printf("e flag set, read from:\n%s\n", extensionPart.c_str());
+    std::string binExtensionPart = hexToBin(extensionPart);
+    printf("In binary:\n%s\n", binExtensionPart.c_str());
+
+    // eFlag tells if extension part ends or not
+    // 0 - ends, 1 - doesn't end 
+    std::string eFlag = "1"; // for first iteration of loop
+
+    // I need to count number of bytes read
+    // for checking if padding is present
+    int bytesRead = 0;  
+    while (eFlag == "1"){   // while there is next length indicator to get
+                    
+        // Check if extension flag is set
+        // and remove it
+        eFlag = binExtensionPart.substr(0, 1);
+        binExtensionPart.erase(0,1);
+        bytesRead += 1;
+
+        // Get LI 
+        std::string lengthIndicator = binExtensionPart.substr(0, 11);
+        binExtensionPart.erase(0,11);
+        bytesRead += 11;
+
+        long int li = strtoul(lengthIndicator.c_str(), NULL, BASE_2);
+        printf("e=%s li=%s (%ld)\n", eFlag.c_str(), lengthIndicator.c_str(), li);
+        liVec->push_back(li);
+    }
+
+    // check if padding is present
+    while ( (bytesRead % 8) != 0 ){
+        binExtensionPart.erase(0,1);
+        bytesRead++;
+    }
+    printf("Data left: %s\n length: %lu\n", binExtensionPart.c_str(), binExtensionPart.length());
+    return bytesRead;
 }

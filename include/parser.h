@@ -36,5 +36,6 @@ uint16_t parseU5(RlcPduS *pdu, RlcSduS *sdu);
 uint16_t parseU10(RlcPduS *pdu, RlcSduS *sdu);
 uint16_t parseT(RlcPduS *pdu, RlcSduS *sdu);
 uint16_t parseA(RlcPduS *pdu, RlcSduS *sdu);
+int readExtension(std::string binExtensionPart, std::vector<long int> *li);
 int ishex(char c);
 #endif
