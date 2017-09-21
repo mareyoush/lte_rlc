@@ -9,7 +9,7 @@ int main()
 {
     RlcSduS *rlcSdu_p = new RlcSduS();
     RlcPduS *rlcPdu_p = new RlcPduS();
-    loadSduFile("example1.txt", rlcSdu_p);
+    loadSduFile("e1.txt", rlcSdu_p);
     rlcComposer(rlcSdu_p, rlcPdu_p);
     return 0;
 }
