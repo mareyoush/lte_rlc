@@ -297,6 +297,7 @@ uint16_t rlcParser(RlcPduS *rlcPdu_p, RlcSduS *rlcSdu_p){
         }
         case X:
         {
+            // Should return error of some kind
             break;
         }
     } 
@@ -377,12 +378,10 @@ uint16_t parseA(RlcPduS *pdu, RlcSduS *sdu)
 
         // extract one data pdu from structure
         const char *data = pdu->data[i].c_str();
-        printf("PDU %d: ", i);
         char *stringHeader = new char[headerOffset + 1];
         // copy header to sepparate variable
         memcpy(stringHeader, data, headerOffset);
         stringHeader[4] = '\0';
-        printf("header: %s ", stringHeader);
         long int intHeader = strtol(stringHeader, NULL, BASE_16);
         delete[] stringHeader;
 
@@ -391,7 +390,6 @@ uint16_t parseA(RlcPduS *pdu, RlcSduS *sdu)
 
         // --------------- RLC control PDU ------------------------
         if (info.dc == 0){
-            printf("Control PDU\n");
             readControlAMDPDU(pdu->data[i], &info);
             info.p = 0;
             pduS.push_back(info);
@@ -400,8 +398,6 @@ uint16_t parseA(RlcPduS *pdu, RlcSduS *sdu)
         
         // --------------- RLC data PDU ---------------------------
         else{
-            
-            printf("Data PDU\n");
             info.dc = 1;
             info.rf = ((intHeader & BIT15) != 0);
             info.p  = ((intHeader & BIT14) != 0);
@@ -425,7 +421,6 @@ uint16_t parseA(RlcPduS *pdu, RlcSduS *sdu)
             // ---------------- exntension flag not set ------------
             else{
                 info.data = std::string(&data[headerOffset]);
-                printf("data part(one SDU): %s\n", info.data.c_str());
                 pduS.push_back(info);
             }
             // ---------------- exntension flag not set ------------
@@ -522,15 +517,14 @@ void prepareSdusFromAmdPdus(std::vector<pduAMDInfo> pduS){
     if (pduS.empty()){
         // should return an error
     }
-
-    // chop into SDUs
     
     for (unsigned int i = 0; i < pduS.size(); i++){
         // ---------------------- Data PDU ---------------------------------------
         if (pduS[i].dc == 1){
             printf("Data PDU %u dc=%d, rf=%d, p=%d, fi=%d, e=%d, sn=%d\n"
                    ,i , pduS[i].dc, pduS[i].rf, pduS[i].p, pduS[i].fi, pduS[i].e, pduS[i].sn);
-            printf("DATA: %s li: ", pduS[i].data.c_str());
+            printf("DATA: %s ", pduS[i].data.c_str());
+            if (pduS[i].li.size() != 0) printf("li: ");
             for (unsigned int j = 0; j < pduS[i].li.size(); j++){
                 printf("%lu ", pduS[i].li[j]);
             }
