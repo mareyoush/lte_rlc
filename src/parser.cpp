@@ -392,8 +392,9 @@ uint16_t parseA(RlcPduS *pdu, RlcSduS *sdu)
         // --------------- RLC control PDU ------------------------
         if (info.dc == 0){
             printf("Control PDU\n");
-            ret = readControlAMDPDU(pdu->data[i], &info);
-            //pduS.push_back(info);
+            readControlAMDPDU(pdu->data[i], &info);
+            info.p = 0;
+            pduS.push_back(info);
         }
         // --------------- RLC control PDU ------------------------
         
@@ -432,19 +433,8 @@ uint16_t parseA(RlcPduS *pdu, RlcSduS *sdu)
         // ------------- RLC data PDU -----------------------------
 
     }
+    prepareSdusFromAmdPdus(pduS);
 
-    // chop into SDUs
-    if (!pduS.empty()){
-        for (unsigned int i = 0; i < pduS.size(); i++){
-            printf("PDU %u dc=%d, rf=%d, p=%d, fi=%d, e=%d, sn=%d\n"
-            ,i , pduS[i].dc, pduS[i].rf, pduS[i].p, pduS[i].fi, pduS[i].e, pduS[i].sn);
-            printf("DATA: %s li: ", pduS[i].data.c_str());
-            for (unsigned int j = 0; j < pduS[i].li.size(); j++){
-                printf("%lu ", pduS[i].li[j]);
-            }
-            printf("\n");
-        }
-    }
     return ret;
 }
 
@@ -491,21 +481,78 @@ int readExtension(std::string extensionPart, std::vector<long int> *liVec)
 
 // Author: Adam Wroblak
 // struct will be filled depending on contents in the data string
-uint16_t readControlAMDPDU(std::string pdu, struct pduAMDInfo *info)
+// Don't know what to return yet
+void readControlAMDPDU(std::string pdu, struct pduAMDInfo *info)
 {
     std::string binPdu = hexToBin(pdu);
+    // There is no need to check d/c but I do it anyway
     std::string strDc = binPdu.substr(0, 1);
+
+    // CPT should always be 0
     std::string strCpt = binPdu.substr(1,3);
+    // Control PDU contains only one ACK_SN
     std::string strAckSn = binPdu.substr(4, 10);
+    // E1 tells if NACK set follows
     std::string strE1 = binPdu.substr(14, 1);
-    printf("dc: %s cpt: %s ack_sn: %s e1: %s\n", strDc.c_str(), strCpt.c_str(), strAckSn.c_str(), strE1.c_str());
+    std::string strE2 = "";
 
+    // NACK set should begin in 15th bit in binary string
+    int offset = 15;
+
+    info->ack = strtol(strAckSn.c_str(), NULL, BASE_2);
     // if NACK set follows
-    if (strE1[0] == '1'){
-
+    while (strE1[0] == '1'){
+        std::string strNack = binPdu.substr(offset, 10);
+        offset += 10;
+        strE1 = binPdu.substr(offset, 1);
+        offset += 1;
+        // for now E2 should always be 0 (tells if set of SOstart/SOend follows)
+        strE2 = binPdu.substr(offset, 1);
+        offset += 1;
+        info->nacks.push_back(strtol(strNack.c_str(), NULL, BASE_2));
+        // In future here I should check if E2 is 1 and if it is
+        // parse SOstart and SOend part 
+        // if (E2[0] == '1) {...} 
+    }
+}
+// Author: Adam Wroblak
+// Takes int a vector of sepparate PDUs
+void prepareSdusFromAmdPdus(std::vector<pduAMDInfo> pduS){
+        
+    if (pduS.empty()){
+        // should return an error
     }
 
-    return 0;
+    // chop into SDUs
+    
+    for (unsigned int i = 0; i < pduS.size(); i++){
+        // ---------------------- Data PDU ---------------------------------------
+        if (pduS[i].dc == 1){
+            printf("Data PDU %u dc=%d, rf=%d, p=%d, fi=%d, e=%d, sn=%d\n"
+                   ,i , pduS[i].dc, pduS[i].rf, pduS[i].p, pduS[i].fi, pduS[i].e, pduS[i].sn);
+            printf("DATA: %s li: ", pduS[i].data.c_str());
+            for (unsigned int j = 0; j < pduS[i].li.size(); j++){
+                printf("%lu ", pduS[i].li[j]);
+            }
+            printf("\n");
+        }
+        // ---------------------- Data PDU ---------------------------------------
+
+        // --------------------- Control PDU -------------------------------------
+        else if (pduS[i].dc == 0){
+            printf("Control PDU %d ACK_SN=%ld ",i , pduS[i].ack);
+            // if there are NACKs
+            if (pduS[i].nacks.size() != 0){
+                printf("NACKs: ");
+                for (unsigned int k = 0; k < pduS[i].nacks.size(); k++){
+                    printf("%ld ",pduS[i].nacks[k]);
+                }
+                printf("\n");
+
+             } else printf("No NACKs\n");
+        }
+        // --------------------- Control PDU -------------------------------------
+    }
 }
 
 
