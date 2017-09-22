@@ -35,7 +35,7 @@ int main(int argc, char** argv)
         std::cout<<"--parser - parse RLC frame" <<std::endl;
         std::cout<<"--test - validate composing/parsing RLC frames"<<std::endl;
         std::cout<<"(optional) --verbose - give whole logs to predefined file"<<std::endl;
-        return 1;
+        return 0;
     }
     RlcSduS *rlcSdu_p = new RlcSduS();
     RlcPduS *rlcPdu_p = new RlcPduS();
