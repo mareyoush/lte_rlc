@@ -221,9 +221,40 @@ uint16_t composerUM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
             tempPduSize -= sizeSduS[i+j];
             ++j;
         }
+        if (leftSizeSdu != 0)   //Część poprzedniego SDU
+            j++;
         if (rlcSdu_p->data[0] == rlcSdu_p->data[i]) //First SDU
         {
             FI = "0";
+        }
+
+        int k = 1;
+        while (j > k)  // Wiecej wiecej niz jeden Sdu miesci sie w Pdu
+        {
+            E = "1";
+            if (k == (j-1))
+            {
+                extHeader += "0";
+            }
+            else
+            {
+                extHeader += "1";
+            }
+            
+            if (leftSizeSdu != 0)
+            {
+                extHeader += decToBin(leftSizeSdu, 11);
+            }
+            else
+            {
+                extHeader += decToBin(sizeSduS[i+k-1], 11); 
+            }
+            ++k;
+        }
+
+        if (extHeader.size() % 8 != 0)
+        {
+            extHeader += "0000";    // Padding
         }
 
         int usableSpacePdu = 0;
@@ -255,41 +286,21 @@ uint16_t composerUM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
             FI += "0";
         }
 
-        int k = 1;
-        while (j > k)  // Wiecej wiecej niz jeden Sdu miesci sie w Pdu
-        {
-            E = "1";
-            if (k == (j-1))
-            {
-                extHeader += "0";
-            }
-            else
-            {
-                extHeader += "1";
-            }
-            
-            if (k == 1)
-            {
-                extHeader += decToBin(sizeSduS[i+j-1] - leftSizeSdu, 11);
-            }
-            else
-            {
-                extHeader += decToBin(sizeSduS[i], 11); 
-            }
-            ++k;
-        }
-
-        if (extHeader.size() % 8 != 0)
-        {
-            extHeader += "0000";    // Padding
-        }
-
         output += binToHex(FI + E + decToBin(SN, 5));
         output += binToHex(extHeader);
         for (int m = 0; m < j; ++m)
         {
             output += binToHex(rlcSdu_p->data[m]  + " ");
         }
+
+        std::cout << "FI: " << FI << "\n";
+        std::cout << "E: " << E << "\n";
+        std::cout << "SN: " << decToBin(SN, 5) << "\n";
+        std::cout << "EXTENSION HEADER: ";
+        std::cout << extHeader << "\n"; 
+        std::cout << "HELPER VARIABLES: \n";
+        std::cout << "leftSizeSdu: " << leftSizeSdu << "\n";
+        std::cout << "usableSpacePdu: " << usableSpacePdu << "\n";
 
         ++SN;
         i = i+j;
