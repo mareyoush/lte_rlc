@@ -30,6 +30,8 @@ typedef struct pduHeaderU5
     uint32_t fi:2;
     uint32_t e:1;
     uint32_t sn:5;
+    std::vector<uint32_t> li;
+    std::string data;
 }pduHeaderU5;
 
 typedef struct pduHeaderU10
@@ -40,6 +42,8 @@ typedef struct pduHeaderU10
     uint32_t fi:2;
     uint32_t e:1;
     uint32_t sn:10;
+    std::vector<uint32_t> li;
+    std::string data;
 }pduHeaderU10;
 
 typedef struct pduHeaderAM

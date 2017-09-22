@@ -8,6 +8,8 @@
 #include <cstdio>
 #include <bitset>
 
+// Convert hex string to binary string
+// Author - Mariusz Koziel 
 std::string hexToBin(std::string hex)
 {
     std::string output = "";
@@ -301,12 +303,14 @@ uint16_t rlcParser(RlcPduS *rlcPdu_p, RlcSduS *rlcSdu_p){
     return ret;
 }
 
+// Author - Mariusz Koziel
 uint16_t parseU5(RlcPduS *pdu, RlcSduS *sdu)
 {
     for (unsigned int i = 0; i < pdu->data.size(); ++i){
     
         std::string headerStr = hexToBin(pdu->data[i].substr(0,2));
-
+	std::string bitsWithoutFixedPart = hexToBin(pdu->data[i].substr(2, pdu->data[i].size()-1));
+	
         pduHeaderU5 pduh;
 	pduh.fi = std::bitset<32>(headerStr.substr(0,2)).to_ulong();
 	pduh.e = std::bitset<32>(headerStr.substr(2,1)).to_ulong();
@@ -314,16 +318,25 @@ uint16_t parseU5(RlcPduS *pdu, RlcSduS *sdu)
 
 	printf("FI: %u, E: %u, SN: %u", pduh.fi, pduh.e, pduh.sn);
 
-	//parse li
+	    uint32_t extensionPartBitsCount = parseExtensionPart(pduh.e, bitsWithoutFixedPart, &pduh.li);
+        printf("test: %u", extensionPartBitsCount);
+
+        std::string dataPart = hexToBin(pdu->data[i]);
+        dataPart = dataPart.substr(extensionPartBitsCount, pdu->data[i].size() - extensionPartBitsCount);
+        pduh.data = std::bitset<32>(dataPart).to_ulong();
+
     }
 
     return 0;
 }
+
+// Author - Mariusz Koziel
 uint16_t parseU10(RlcPduS *pdu, RlcSduS *sdu)
 {	
     for (unsigned int i = 0; i < pdu->data.size(); ++i){
         
         std::string headerStr = hexToBin(pdu->data[i].substr(0,4));
+        std::string bitsWithoutFixedPart = hexToBin(pdu->data[i].substr(4, pdu->data[i].size()-1));
 
 	pduHeaderU10 pduh;
 	pduh.r1_1 = std::bitset<32>(headerStr.substr(0,1)).to_ulong();
@@ -335,10 +348,17 @@ uint16_t parseU10(RlcPduS *pdu, RlcSduS *sdu)
 
 	printf("R1: %u, R1: %u, R1: %u, FI: %u, E: %u, SN: %u\n", pduh.r1_1, pduh.r1_2, pduh.r1_3, pduh.fi, pduh.e, pduh.sn);
 	
-	//parse li
+        
+	uint32_t extensionPartBitsCount = parseExtensionPart(pduh.e, bitsWithoutFixedPart, &pduh.li); 
+	printf("test: %u", extensionPartBitsCount);
+	
+	std::string dataPart = hexToBin(pdu->data[i]);
+	dataPart = dataPart.substr(extensionPartBitsCount, pdu->data[i].size() - extensionPartBitsCount);
+	pduh.data = std::bitset<32>(dataPart).to_ulong();
     }
     return 0;
 }
+
 uint16_t parseT(RlcPduS *pdu, RlcSduS *sdu)
 {
     return 0;
@@ -486,4 +506,36 @@ uint16_t readControlAMDPDU(std::string pdu, struct pduAMDInfo *info)
     }
 
     return 0;
+}
+
+
+// Author = Mariusz Koziel
+uint32_t parseExtensionPart(uint32_t e, std::string bitsWithoutFixedPart, std::vector<uint32_t> *liVector){
+	
+ 
+    uint32_t bitsCount = 0;
+    uint32_t li = 0; // value of length indicator
+    bool even = 0; // checking oven occurences of li for padding
+	
+    
+    if (!e){ 
+        return -1;	
+    }
+
+    while(e && (bitsCount < bitsWithoutFixedPart.size())){
+        e = std::bitset<32>(bitsWithoutFixedPart.substr(bitsCount,1)).to_ulong();
+	bitsCount++;
+
+	li = std::bitset<32>(bitsWithoutFixedPart.substr(bitsCount,11)).to_ulong();
+	bitsCount += 11; 
+       
+        liVector->push_back(li);	
+	even = !even;	
+    }
+    
+    if(even){
+      bitsCount += 4; //add bits for padding  
+    }   
+    return bitsCount;  	
+
 }
