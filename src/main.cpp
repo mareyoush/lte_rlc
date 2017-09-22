@@ -4,7 +4,7 @@
 #include "rlc_structures.h"
 #include "parser.h"
 #include "composer.h"
-
+#include "rlcTest.h"
 //Author: Dawid Bryłka
 int main(int argc, char** argv)
 {
@@ -65,7 +65,15 @@ int main(int argc, char** argv)
             perror("fclose");
         }
     }else if(test_flag){
-        //ret = rlcTest(rlcPdu_p, rlcSdu_p);
+        loadSduFile(argv[optind], rlcSdu_p);
+        FILE *file = fopen(argv[optind+1], "r");
+        if (file == NULL){
+            perror("fopen");
+            return EBAD_FILE;
+        }
+        ret = check_pdu_file(file, rlcPdu_p);
+        std::cout<<rlcPdu_p->data[0];
+        ret = rlcTest(rlcPdu_p, rlcSdu_p);
         if(ret){
             std::cout<<"Test finished correctly" <<std::endl;
         }else{

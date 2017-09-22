@@ -1,0 +1,1 @@
+bool rlcTest(RlcPduS *rlcPdu_p, RlcSduS *rlcSdu_p);
