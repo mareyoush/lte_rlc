@@ -183,6 +183,9 @@ uint16_t composerTM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
 //Pachoł: Dawid Bryłka
 uint16_t composerUM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
 {
+    rlcPdu_p->mode = rlcSdu_p->mode;
+    rlcPdu_p->sizePdu = rlcSdu_p->sizePdu;
+
     std::vector<int> sizeSduS;
 
     for (unsigned int i = 0; i < rlcSdu_p->data.size(); i++)
@@ -203,7 +206,7 @@ uint16_t composerUM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
 
     while (i < int(rlcSdu_p->data.size()))
     {
-        output = "";
+        //output = "";
         FI = "";
         E = "0";
         extHeader = "";
@@ -251,7 +254,7 @@ uint16_t composerUM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
         {
             FI += "0";
         }
-        //std::cout << "J: " << j << "\n";
+
         int k = 1;
         while (j > k)  // Wiecej wiecej niz jeden Sdu miesci sie w Pdu
         {
@@ -281,24 +284,18 @@ uint16_t composerUM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
             extHeader += "0000";    // Padding
         }
 
-        output += FI + E + decToBin(SN, 5);
-        output += extHeader;
+        output += binToHex(FI + E + decToBin(SN, 5));
+        output += binToHex(extHeader);
         for (int m = 0; m < j; ++m)
         {
-            output += rlcSdu_p->data[m]  + " ";
+            output += binToHex(rlcSdu_p->data[m]  + " ");
         }
-        
-        std::cout << output << "\n";
 
         ++SN;
         i = i+j;
     }
-    
-
-    /*std::string test = std::vector[1];
-    std::string sizePdu = rlcSdu_p->data[1].substr(0, rlcSdu_p->data[1].find(' '));
-    std::cout << "Original " << rlcSdu_p->data[1] << "\nNew " << sizePdu << "\n";
-    std::cout << decToBin(5, 5) << "\n";*/
+      
+    rlcPdu_p->data.push_back(output);
 
     return 0;
 }
