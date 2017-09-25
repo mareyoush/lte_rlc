@@ -319,13 +319,13 @@ uint16_t parseU5(RlcPduS *pdu, RlcSduS *sdu)
 
 	printf("FI: %u, E: %u, SN: %u", pduh.fi, pduh.e, pduh.sn);
 
-	    uint32_t extensionPartBitsCount = parseExtensionPart(pduh.e, bitsWithoutFixedPart, &pduh.li);
-        printf("test: %u", extensionPartBitsCount);
+	uint32_t extensionPartBitsCount = parseExtensionPart(pduh.e, bitsWithoutFixedPart, &pduh.li);
+        printf("Amount of extension part bits: %u\n", extensionPartBitsCount);
 
-        std::string dataPart = hexToBin(pdu->data[i]);
+        std::string dataPart = pdu->data[i];
         dataPart = dataPart.substr(extensionPartBitsCount, pdu->data[i].size() - extensionPartBitsCount);
-        pduh.data = std::bitset<32>(dataPart).to_ulong();
-
+        pduh.data = dataPart;
+	printf("Data part: %s\n", pduh.data.c_str());
     }
 
     return 0;
@@ -351,11 +351,12 @@ uint16_t parseU10(RlcPduS *pdu, RlcSduS *sdu)
 	
         
 	uint32_t extensionPartBitsCount = parseExtensionPart(pduh.e, bitsWithoutFixedPart, &pduh.li); 
-	printf("test: %u", extensionPartBitsCount);
-	
-	std::string dataPart = hexToBin(pdu->data[i]);
+	printf("Amount of extension part bits: %u\n", extensionPartBitsCount);
+
+	std::string dataPart = pdu->data[i];
 	dataPart = dataPart.substr(extensionPartBitsCount, pdu->data[i].size() - extensionPartBitsCount);
-	pduh.data = std::bitset<32>(dataPart).to_ulong();
+	pduh.data = dataPart;
+	printf("Data part: %s\n", pduh.data.c_str());
     }
     return 0;
 }
@@ -594,8 +595,8 @@ uint32_t parseExtensionPart(uint32_t e, std::string bitsWithoutFixedPart, std::v
     bool even = 0; // checking oven occurences of li for padding
 	
     
-    if (!e){ 
-        return -1;	
+    if (!e){
+        return 0;	
     }
 
     while(e && (bitsCount < bitsWithoutFixedPart.size())){
