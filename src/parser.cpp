@@ -428,7 +428,7 @@ uint16_t parseA(RlcPduS *pdu, RlcSduS *sdu)
         // ------------- RLC data PDU -----------------------------
 
     }
-    prepareSdusFromAmdPdus(pduS);
+    prepareSdusFromAmdPdus(pduS, sdu);
 
     return ret;
 }
@@ -512,11 +512,46 @@ void readControlAMDPDU(std::string pdu, struct pduAMDInfo *info)
 }
 // Author: Adam Wroblak
 // Takes int a vector of sepparate PDUs
-void prepareSdusFromAmdPdus(std::vector<pduAMDInfo> pduS){
+void prepareSdusFromAmdPdus(std::vector<pduAMDInfo> pduS, RlcSduS *sdu){
         
     if (pduS.empty()){
         // should return an error
     }
+
+    // ------------------ Establish  polling  --------------------------------
+    int polling = 0;
+
+    std::vector<unsigned int> whereIsPolling;
+    for (unsigned int i = 0; i < pduS.size(); i++){
+        // if polling flag present
+        if (pduS[i].p == 1){
+            // +1 because we start from 0
+            whereIsPolling.push_back(i + 1);
+        }
+    }
+
+    if( whereIsPolling.empty() ){
+        printf("No polling flags present.\n");
+    } 
+    else {
+        // If flag occured once
+        if (whereIsPolling.size() == 1){
+            polling = whereIsPolling[0];
+        }
+        // If flag occured twice
+        else if (whereIsPolling.size() == 2){
+            polling = whereIsPolling[1] - whereIsPolling[0]; 
+        }
+        // If more than 2 PDUs have polling flag set 
+        else{
+            polling = whereIsPolling[2] - whereIsPolling[1]; 
+        }
+    }
+
+    sdu->pool = polling;
+    printf("Polling to set: %d\n", polling);
+
+    // ------------------ Establish  polling  --------------------------------
     
     for (unsigned int i = 0; i < pduS.size(); i++){
         // ---------------------- Data PDU ---------------------------------------

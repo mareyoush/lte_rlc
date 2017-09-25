@@ -40,7 +40,7 @@ uint16_t parseT(RlcPduS *pdu, RlcSduS *sdu);
 uint16_t parseA(RlcPduS *pdu, RlcSduS *sdu);
 int readExtension(std::string binExtensionPart, std::vector<long int> *li);
 void readControlAMDPDU(std::string data, struct pduAMDInfo *info);
-void prepareSdusFromAmdPdus(std::vector<pduAMDInfo> pduS);
+void prepareSdusFromAmdPdus(std::vector<pduAMDInfo> pduS, RlcSduS *sdu);
 uint32_t parseExtensionPart(uint32_t e, std::string bitsWithoutFixedPart, std::vector<uint32_t> *liVector);
 int ishex(char c);
 
