@@ -592,6 +592,7 @@ void prepareSdusFromAmdPdus(std::vector<pduAMDInfo> pduS, RlcSduS *sdu){
                 // So I need to push whole Data
                 if (pduS[i].li.size() == 0){
                     sduData += pduS[i].data;
+                    printf("To push: %s\n", sduData.c_str());
                     sdu->data.push_back(sduData);
                     sdu->sizeSduS.push_back( sduData.length() / 2);
                     sduData = ""; 
@@ -652,6 +653,7 @@ void prepareSdusFromAmdPdus(std::vector<pduAMDInfo> pduS, RlcSduS *sdu){
                 // So concatenate and push
                 if (pduS[i].li.size() == 0){
                     sduData += pduS[i].data;
+                    printf("To push: %s\n", sduData.c_str());
                     sdu->data.push_back(sduData);
                     sdu->sizeSduS.push_back( sduData.length() / 2);
                     sduData = "";                    
