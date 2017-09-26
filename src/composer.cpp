@@ -33,7 +33,8 @@ std::string decToBin(int dec, int bitsNumber)
     return output;
 }
 //Author: Dawid Bryłka
-std::string binToHex(std::string input){
+std::string binToHex(std::string input)
+{
     std::string temp = "", output = "";
     int wordCount = 0;
     
@@ -65,15 +66,18 @@ std::string binToHex(std::string input){
             wordCount=0;
         }
     }
+
    return output;
 }
 //Author: Jakub Nowak
 int loadSduFile(std::string filename, RlcSduS *rlcSdu_p)
 {
+    log("ENTER Function loadSduFile.");    
+
     std::string line;
-    
     std::ifstream file(filename.c_str());
     
+    log("INFO Read first line from SduFile.");
     getline(file, line);
     
     std::istringstream var(line);
@@ -81,8 +85,10 @@ int loadSduFile(std::string filename, RlcSduS *rlcSdu_p)
     int pool = 0, sizePdu=0;
     var >> mode >> type_or_data >> pool >> sizePdu;
 
+    log("INFO Check mode.");
     if(mode == "T")
     {
+        log("INFO Transparent mode.");
         rlcSdu_p->mode = T;
         while(getline(file, line))
         {
@@ -92,9 +98,13 @@ int loadSduFile(std::string filename, RlcSduS *rlcSdu_p)
     } 
     else if(mode == "A")
     {
+        log("INFO Acknowledge mode.");
         rlcSdu_p->mode = A;
+    
+        log("INFO Check type.");
         if(type_or_data == "D")
         {
+            log("INFO Data type.");
             rlcSdu_p->type = D;
             rlcSdu_p->pool = pool;
             rlcSdu_p->sizePdu = sizePdu;
@@ -106,6 +116,7 @@ int loadSduFile(std::string filename, RlcSduS *rlcSdu_p)
         }
         else if(type_or_data == "C")
         {
+            log("INFO Control type.");
             std::string tmp_SN;
             while(getline(file, line))
             {
@@ -116,6 +127,7 @@ int loadSduFile(std::string filename, RlcSduS *rlcSdu_p)
     }
     else if(mode == "U5")
     {
+        log("INFO Unacknowledge 5-bit mode.");
         rlcSdu_p->mode = U5;
 
         rlcSdu_p->sizePdu = stoi(type_or_data);
@@ -127,6 +139,7 @@ int loadSduFile(std::string filename, RlcSduS *rlcSdu_p)
     }
     else if(mode == "U10")
     {
+        log("INFO Unacknowledge 10-bit mode.");
         rlcSdu_p->mode = U10;
         
         rlcSdu_p->sizePdu = stoi(type_or_data);
@@ -137,45 +150,62 @@ int loadSduFile(std::string filename, RlcSduS *rlcSdu_p)
     }
     else
     {
+        log("ERROR Invalid file format.");
         return 1;   //Blad. Niepoprawny format pliku
     }
+
+    log("INFO Close SduFile.");
     file.close();
 
     std::cout << std::endl;
+
+    log("EXIT Function loadSduFile.");  
     return 0;
 }
 
 //Author: Adam Ziołecki
 uint16_t rlcComposer(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
 {
+    log("ENTER Function rlcComposer.");  
+
+    log("INFO Check mode to choose appropriate composer function.");
     if (rlcSdu_p->mode == T)
     {
+        log("INFO Function composerTM.");
         composerTM(rlcSdu_p, rlcPdu_p);
     }
     else if (rlcSdu_p->mode == U5 || rlcSdu_p->mode == U10)
     {
+        log("INFO Function composerUM.");
         composerUM(rlcSdu_p, rlcPdu_p);
     }
     else if (rlcSdu_p->mode == A)
     {
+        log("INFO Function composerAM.");
         composerAM(rlcSdu_p, rlcPdu_p);
     }
 
+    log("EXIT Function rlcComposer.");
     return 0;
 }
 
 //Author: Jakub Nowak
 uint16_t composerTM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
 {
+    log("ENTER Function composerTM.");
+    
     rlcPdu_p->mode = rlcSdu_p->mode;
     rlcPdu_p->sizePdu = rlcSdu_p->sizePdu;
-    
     rlcPdu_p->data.push_back("");
-
+    
+    log("INFO Enter loop to write data to structure.");
     for (int i=0; i < (int)rlcSdu_p->data.size(); i++)
     {
         rlcPdu_p->data[0] += rlcSdu_p->data[i] + " ";
     }
+    log("INFO Exit loop.");
+
+    log("EXIT Function composerTM.");
     return 0;
 }
 
@@ -183,6 +213,8 @@ uint16_t composerTM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
 //Pachoł: Dawid Bryłka
 uint16_t composerUM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
 {
+    log("ENTER Function composerUM.");
+
     rlcPdu_p->mode = rlcSdu_p->mode;
     rlcPdu_p->sizePdu = rlcSdu_p->sizePdu;
 
@@ -193,48 +225,73 @@ uint16_t composerUM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
         sizeSduS.push_back(std::stoi(rlcSdu_p->data[i].substr(0, rlcSdu_p->data[i].find(' '))));
     }
 
+    int headerSize = 1;
     int tempPduSize = 0;
     int i = 0;
+    int j = 0;
     std::string FI = "";
     std::string prevFI = "";
     std::string E = "";
     std::string extHeader = "";
     std::string padding = "";
+    int usableSpacePdu = 0;
     int leftSizeSdu = 0;
     int SN = 0;
     std::string output = "";
 
     while (i < int(rlcSdu_p->data.size()))
     {
-        //output = "";
         FI = "";
         E = "0";
         extHeader = "";
         tempPduSize = rlcSdu_p->sizePdu;
-        int j = 0;
+        j = 0;
         
+        if (prevFI != "")
+            FI += prevFI[1];    //std::cout << "prevFI: " << prevFI[1] << "\n"; 
+
+        if (leftSizeSdu != 0)   //Część poprzedniego SDU
+        {
+            j++;
+            //tempPduSize -= 2;
+        }
+
         while (tempPduSize > 0)
         {
             if ((i+j) > int(rlcSdu_p->data.size()))
                 break;
+            tempPduSize -= headerSize;
             tempPduSize -= leftSizeSdu;
-            tempPduSize -= sizeSduS[i+j];
+            if (leftSizeSdu == 0) {
+                tempPduSize -= sizeSduS[i+j];
+                ++i;
+            }
+            else {
+                tempPduSize -= sizeSduS[i+j-1];
+                ++i;
+            }
+            if (j > 1)
+            {
+                if (j % 2 != 0)
+                    tempPduSize -= 2;
+                else
+                    tempPduSize -= 1;
+            }
             ++j;
         }
-        if (leftSizeSdu != 0)   //Część poprzedniego SDU
-            j++;
-        if (rlcSdu_p->data[0] == rlcSdu_p->data[i]) //First SDU
+
+        if (i-j == 0) //First SDU
         {
             FI = "0";
         }
 
         int k = 1;
-        while (j > k)  // Wiecej wiecej niz jeden Sdu miesci sie w Pdu
+        while (j > k)  // Wiecej niz jeden Sdu miesci sie w Pdu
         {
             E = "1";
             if (k == (j-1))
             {
-                extHeader += "0";
+                 extHeader += "0";
             }
             else
             {
@@ -247,7 +304,7 @@ uint16_t composerUM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
             }
             else
             {
-                extHeader += decToBin(sizeSduS[i+k-1], 11); 
+                extHeader += decToBin(sizeSduS[i-j+k-1], 11); 
             }
             ++k;
         }
@@ -257,15 +314,18 @@ uint16_t composerUM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
             extHeader += "0000";    // Padding
         }
 
-        int usableSpacePdu = 0;
+        usableSpacePdu = 0;
         usableSpacePdu += leftSizeSdu;
-        for (int m = i; m < i+j; m++)
+        if (leftSizeSdu != 0)
+            --j;
+        for (int m = i-j; m < i; m++)
         {
             usableSpacePdu += sizeSduS[m];
         }
 
-        usableSpacePdu += 1; // Header size (in bytes)
-
+        usableSpacePdu += headerSize; // Header size (in bytes)
+        if (leftSizeSdu != 0)
+            ++j;
         if ((j*12) % 8 != 0)
             usableSpacePdu += ((j-1)*12)/8;
         else
@@ -288,38 +348,39 @@ uint16_t composerUM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
 
         output += binToHex(FI + E + decToBin(SN, 5));
         output += binToHex(extHeader);
-        for (int m = 0; m < j; ++m)
+        /*for (int m = i-j; m < j; ++m)
         {
-            output += binToHex(rlcSdu_p->data[m]  + " ");
-        }
-
+            output += rlcSdu_p->data[m]  + " ";
+        }*/
+        prevFI = FI;
         std::cout << "FI: " << FI << "\n";
         std::cout << "E: " << E << "\n";
         std::cout << "SN: " << decToBin(SN, 5) << "\n";
         std::cout << "EXTENSION HEADER: ";
         std::cout << extHeader << "\n"; 
-        std::cout << "HELPER VARIABLES: \n";
-        std::cout << "leftSizeSdu: " << leftSizeSdu << "\n";
-        std::cout << "usableSpacePdu: " << usableSpacePdu << "\n";
 
         ++SN;
-        i = i+j;
     }
       
     rlcPdu_p->data.push_back(output);
 
+    log("EXIT Function composerUM.");
     return 0;
 }
 
 uint16_t composerAM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
 {
-
+    log("ENTER Function composerAM.");
+   
+    log("EXIT Function composerAM.");
     return 0;
 }
 
 //Author: Jakub Nowak
 int savePduFile(std::string filename, RlcPduS *rlcPdu_p)
 {
+    log("ENTER Function savePduFile.");
+
     std::string mode;
     if(rlcPdu_p->mode == 1)
         mode = "T";
@@ -330,15 +391,32 @@ int savePduFile(std::string filename, RlcPduS *rlcPdu_p)
     else if (rlcPdu_p->mode == 4)
         mode = "A";
     else
+    {
+        log("ERROR Wrong mode.");
         return 1;
+    }
     
     std::ofstream outfile;
-    outfile.open(filename);
+
+    log("INFO Open PduFile to write.");
+    outfile.open(filename);    
     if (rlcPdu_p->sizePdu == 0)
         outfile << mode << "\n" << rlcPdu_p->data[0];
     else
         outfile << mode << " " << rlcPdu_p->sizePdu << "\n" << rlcPdu_p->data[0];
+    log("INFO Close PduFile to write.");
     outfile.close();
-
+    
+    log("EXIT Function savePduFile.");
     return 0;
+}
+
+void log(std::string prompt)
+{
+    std::ofstream logfile;
+    logfile.open("log.txt", std::ios::app);
+    
+        logfile << prompt << "\n";
+    
+    logfile.close();
 }
