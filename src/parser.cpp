@@ -430,7 +430,6 @@ uint16_t parseA(RlcPduS *pdu, RlcSduS *sdu)
 
     }
     prepareSdusFromAmdPdus(pduS, sdu);
-
     return ret;
 }
 
@@ -548,27 +547,22 @@ void prepareSdusFromAmdPdus(std::vector<pduAMDInfo> pduS, RlcSduS *sdu){
             polling = whereIsPolling[2] - whereIsPolling[1]; 
         }
     }
-
-    sdu->pool = polling;
     printf("Polling to set: %d\n", polling);
-
     // ------------------ Establish  polling  --------------------------------
-    
+
+    // ------------------------------ Show the PDUs --------------------------------------
     for (unsigned int i = 0; i < pduS.size(); i++){
-        // ---------------------- Data PDU ---------------------------------------
         if (pduS[i].dc == 1){
             printf("Data PDU %u dc=%d, rf=%d, p=%d, fi=%d, e=%d, sn=%d\n"
-                   ,i , pduS[i].dc, pduS[i].rf, pduS[i].p, pduS[i].fi, pduS[i].e, pduS[i].sn);
+            ,i , pduS[i].dc, pduS[i].rf, pduS[i].p, pduS[i].fi, pduS[i].e, pduS[i].sn);
             printf("DATA: %s ", pduS[i].data.c_str());
             if (pduS[i].li.size() != 0) printf("li: ");
+     
             for (unsigned int j = 0; j < pduS[i].li.size(); j++){
                 printf("%lu ", pduS[i].li[j]);
             }
             printf("\n");
         }
-        // ---------------------- Data PDU ---------------------------------------
-
-        // --------------------- Control PDU -------------------------------------
         else if (pduS[i].dc == 0){
             printf("Control PDU %d ACK_SN=%ld ",i , pduS[i].ack);
             // if there are NACKs
@@ -581,8 +575,154 @@ void prepareSdusFromAmdPdus(std::vector<pduAMDInfo> pduS, RlcSduS *sdu){
 
              } else printf("No NACKs\n");
         }
-        // --------------------- Control PDU -------------------------------------
     }
+    printf("\n");
+    // ------------------------------ Show the PDUs --------------------------------------
+
+    std::string sduData = "";
+    for (unsigned int i = 0; i < pduS.size(); i++){
+        
+        // ---------------------- Data PDU ---------------------------------------
+        if (pduS[i].dc == 1){
+
+            if (pduS[i].fi == 0){
+                sduData = "";
+                // This means this a whole one SDU
+                // (because no extension present)
+                // So I need to push whole Data
+                if (pduS[i].li.size() == 0){
+                    sduData += pduS[i].data;
+                    sdu->data.push_back(sduData);
+                    sdu->sizeSduS.push_back( sduData.length() / 2);
+                    sduData = ""; 
+                }
+                // Extension part present 
+                // So cut and push every part
+                else{
+                    for (unsigned int k = 0; k < pduS[i].li.size(); k++ ){
+                        sduData += pduS[i].data.substr(0, pduS[i].li[k] * 2);
+                        sdu->data.push_back(sduData);
+                        sdu->sizeSduS.push_back( sduData.length() / 2);
+                        pduS[i].data.erase(0, pduS[i].li[k] * 2);
+                        printf("To push: %s\n", sduData.c_str());
+                        sduData = "";
+                    }
+                    sduData += pduS[i].data;
+                    printf("To push: %s\n", sduData.c_str());
+                    sdu->data.push_back(sduData);
+                    sdu->sizeSduS.push_back( sduData.length() / 2);
+                }
+            }
+
+            // first byte is first byte od data sdu, last is not last byte of sdu
+            // So I should create new data for sdu but IF there is no extension i won't
+            // end it here
+            else if (pduS[i].fi == 1){
+                sduData = "";
+                // No extension part (no length indicators)
+                // So this is beginning of sdu but not the end
+                // So i dont push it back yet
+                if (pduS[i].li.size() == 0){
+                    sduData += pduS[i].data;
+                }
+                // PDU needs to be cut
+                // so at some point I need to push SDU data to data vector in sdu struct
+                else{
+                    for (unsigned int k = 0; k < pduS[i].li.size(); k++ ){
+                        sduData += pduS[i].data.substr(0, pduS[i].li[k] * 2);
+                        sdu->data.push_back(sduData);
+                        sdu->sizeSduS.push_back( sduData.length() / 2);
+                        pduS[i].data.erase(0, pduS[i].li[k] * 2);
+                        printf("To push: %s\n", sduData.c_str());
+                        sduData = "";
+                    }
+                    // cut the remainder of data
+                    sduData += pduS[i].data;
+                    printf("Remainder left: %s\n", sduData.c_str());
+                }
+            }
+
+            // First byte isn't first byte of SDU
+            // Last byte is a last byte of SDU
+            // So i need to concatenate with previous part of SDU
+            // and create a new one if there is extension part (length indicators)
+            // definite push to vector on last SDU
+            else if (pduS[i].fi == 2){
+                // Ending of SDU and no extension
+                // So concatenate and push
+                if (pduS[i].li.size() == 0){
+                    sduData += pduS[i].data;
+                    sdu->data.push_back(sduData);
+                    sdu->sizeSduS.push_back( sduData.length() / 2);
+                    sduData = "";                    
+                }
+                // extension present
+                // So I need to concatenate and push
+                // on end push needs to be done 
+                // because this is the last byte of SDU
+                else{
+                    for (unsigned int k = 0; k < pduS[i].li.size(); k++ ){
+                        sduData += pduS[i].data.substr(0, pduS[i].li[k] * 2);
+                        printf("To push: %s\n", sduData.c_str());
+                        sdu->data.push_back(sduData);
+                        sdu->sizeSduS.push_back( sduData.length() / 2);
+                        pduS[i].data.erase(0, pduS[i].li[k] * 2);
+                        sduData = "";
+                    }
+                    // need to push the remainder
+                    sduData += pduS[i].data;
+                    printf("To push: %s\n", sduData.c_str());
+                    sdu->data.push_back(sduData);
+                    sdu->sizeSduS.push_back( sduData.length() / 2);
+                }
+                
+            }
+
+            // First byte isn't first byte of SDU
+            // Last byte isn't last byte of SDU
+            // So I need to concatenate with previous SDU
+            // and optional push to SDU data vector if there is
+            // length indicator
+            else if (pduS[i].fi == 3){
+                if (pduS[i].li.size() == 0){
+                    sduData += pduS[i].data;
+                }
+                // concatenate and push (length indicator provided)
+                else{
+                    for (unsigned int k = 0; k < pduS[i].li.size(); k++ ){
+                        sduData += pduS[i].data.substr(0, pduS[i].li[k] * 2);
+                        printf("To push: %s\n", sduData.c_str());
+                        sdu->data.push_back(sduData);
+                        sdu->sizeSduS.push_back( sduData.length() / 2);
+                        pduS[i].data.erase(0, pduS[i].li[k] * 2);
+                        sduData = "";
+                    }
+                    sduData += pduS[i].data;
+                    printf("Remainder left: %s\n", sduData.c_str());                        
+                }
+            }
+        } // if (pduS[i].dc == 1)
+
+        // ---------------------- Data PDU ---------------------------------------
+
+        // --------------------- Control PDU -------------------------------------
+        else if (pduS[i].dc == 0){
+
+        }
+        // --------------------- Control PDU -------------------------------------
+   
+    } // for (unsigned int i = 0; i < pduS.size(); i++)
+
+            // Prepare whole struct
+            sdu->mode = A;
+            sdu->type = (pduS[0].dc == 1) ? D : C;  // 1 means Data AMD PDU, 0 means Control
+            sdu->pool = polling;
+    
+            // And display it
+            printf("\nReady SDUs:\n");
+            for (unsigned int i = 0; i < sdu->data.size(); i++){
+                printf("Data: %s length %d\n", sdu->data[i].c_str(), sdu->sizeSduS[i]);
+            }
 }
 
 
