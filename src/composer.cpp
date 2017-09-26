@@ -225,48 +225,73 @@ uint16_t composerUM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
         sizeSduS.push_back(std::stoi(rlcSdu_p->data[i].substr(0, rlcSdu_p->data[i].find(' '))));
     }
 
+    int headerSize = 1;
     int tempPduSize = 0;
     int i = 0;
+    int j = 0;
     std::string FI = "";
     std::string prevFI = "";
     std::string E = "";
     std::string extHeader = "";
     std::string padding = "";
+    int usableSpacePdu = 0;
     int leftSizeSdu = 0;
     int SN = 0;
     std::string output = "";
 
     while (i < int(rlcSdu_p->data.size()))
     {
-        //output = "";
         FI = "";
         E = "0";
         extHeader = "";
         tempPduSize = rlcSdu_p->sizePdu;
-        int j = 0;
+        j = 0;
         
+        if (prevFI != "")
+            FI += prevFI[1];    //std::cout << "prevFI: " << prevFI[1] << "\n"; 
+
+        if (leftSizeSdu != 0)   //Część poprzedniego SDU
+        {
+            j++;
+            //tempPduSize -= 2;
+        }
+
         while (tempPduSize > 0)
         {
             if ((i+j) > int(rlcSdu_p->data.size()))
                 break;
+            tempPduSize -= headerSize;
             tempPduSize -= leftSizeSdu;
-            tempPduSize -= sizeSduS[i+j];
+            if (leftSizeSdu == 0) {
+                tempPduSize -= sizeSduS[i+j];
+                ++i;
+            }
+            else {
+                tempPduSize -= sizeSduS[i+j-1];
+                ++i;
+            }
+            if (j > 1)
+            {
+                if (j % 2 != 0)
+                    tempPduSize -= 2;
+                else
+                    tempPduSize -= 1;
+            }
             ++j;
         }
-        if (leftSizeSdu != 0)   //Część poprzedniego SDU
-            j++;
-        if (rlcSdu_p->data[0] == rlcSdu_p->data[i]) //First SDU
+
+        if (i-j == 0) //First SDU
         {
             FI = "0";
         }
 
         int k = 1;
-        while (j > k)  // Wiecej wiecej niz jeden Sdu miesci sie w Pdu
+        while (j > k)  // Wiecej niz jeden Sdu miesci sie w Pdu
         {
             E = "1";
             if (k == (j-1))
             {
-                extHeader += "0";
+                 extHeader += "0";
             }
             else
             {
@@ -279,7 +304,7 @@ uint16_t composerUM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
             }
             else
             {
-                extHeader += decToBin(sizeSduS[i+k-1], 11); 
+                extHeader += decToBin(sizeSduS[i-j+k-1], 11); 
             }
             ++k;
         }
@@ -289,15 +314,18 @@ uint16_t composerUM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
             extHeader += "0000";    // Padding
         }
 
-        int usableSpacePdu = 0;
+        usableSpacePdu = 0;
         usableSpacePdu += leftSizeSdu;
-        for (int m = i; m < i+j; m++)
+        if (leftSizeSdu != 0)
+            --j;
+        for (int m = i-j; m < i; m++)
         {
             usableSpacePdu += sizeSduS[m];
         }
 
-        usableSpacePdu += 1; // Header size (in bytes)
-
+        usableSpacePdu += headerSize; // Header size (in bytes)
+        if (leftSizeSdu != 0)
+            ++j;
         if ((j*12) % 8 != 0)
             usableSpacePdu += ((j-1)*12)/8;
         else
@@ -320,23 +348,18 @@ uint16_t composerUM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p)
 
         output += binToHex(FI + E + decToBin(SN, 5));
         output += binToHex(extHeader);
-        
-        for (int m = 0; m < j; ++m)
+        /*for (int m = i-j; m < j; ++m)
         {
-            output += binToHex(rlcSdu_p->data[m]  + " ");
-        }
-
+            output += rlcSdu_p->data[m]  + " ";
+        }*/
+        prevFI = FI;
         std::cout << "FI: " << FI << "\n";
         std::cout << "E: " << E << "\n";
         std::cout << "SN: " << decToBin(SN, 5) << "\n";
         std::cout << "EXTENSION HEADER: ";
         std::cout << extHeader << "\n"; 
-        std::cout << "HELPER VARIABLES: \n";
-        std::cout << "leftSizeSdu: " << leftSizeSdu << "\n";
-        std::cout << "usableSpacePdu: " << usableSpacePdu << "\n";
 
         ++SN;
-        i = i+j;
     }
       
     rlcPdu_p->data.push_back(output);
