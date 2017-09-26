@@ -10,5 +10,6 @@ uint16_t rlcComposer(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p);
 uint16_t composerTM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p);
 uint16_t composerUM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p);
 uint16_t composerAM(RlcSduS *rlcSdu_p, RlcPduS *rlcPdu_p);
+void log(std::string prompt);
 
 #endif
